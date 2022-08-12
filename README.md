@@ -18,3 +18,12 @@
     <br> 
 </p>
 
+## Example Usage:
+```
+import avantpy
+
+print(avantpy.Utils().generateID('Generate ID with MD5 hash text'))
+# Output: 3b3331b428cc68278b975d0d177b9948
+```
+
+Em construção
