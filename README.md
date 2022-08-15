@@ -13,7 +13,7 @@
 
 ---
 
-<p align="center"> Avant Data Python Library
+<p align="center"> AvantData Python Library
     <br> 
 </p>
 
