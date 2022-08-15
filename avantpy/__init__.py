@@ -9,7 +9,7 @@
                                                    
 """
 
-from .utils import Utils
+from . import utils
 
 import logging
 from logging import NullHandler
