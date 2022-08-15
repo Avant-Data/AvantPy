@@ -1,5 +1,5 @@
 # Ignore tests
-.github/workflows/
+aa/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
