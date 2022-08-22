@@ -10,7 +10,9 @@ r"""
 """
 
 from . import utils
+from . import download
 
 import logging
 from logging import NullHandler
 logging.getLogger(__name__).addHandler(NullHandler())
+logging.basicConfig(level=logging.DEBUG)
