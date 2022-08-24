@@ -20,8 +20,78 @@ def generateID(data, **kwargs) -> str:
     return hashlib.md5(data.encode('utf-8')).hexdigest()
 
 
-def removeEmpty(data, **kwargs):
-    """Remove all empty values inside lists, tuples, sets or dictionaries
+def filter(data, **kwargs):
+    import re
+    def mapReplace(value, toReplace):
+        if callable(toReplace):
+            toReplace = [toReplace]
+        if isinstance(toReplace, (tuple,list,set)):
+            for mapFunction in toReplace:
+                value = mapFunction(value)
+        return value
+    def regexReplace(value, toReplace):
+        if type(toReplace) is dict and value:
+            for k,v in toReplace.items():
+                value = re.sub(k, v, value)
+        return value
+    def strictReplace(value, toReplace):
+        if type(toReplace) is dict:
+            if value in toReplace.keys():
+                value = toReplace[value]
+        return value
+    def priorityTree(kwarg, item, word):
+        for k,v in kwarg.items():
+            if word in k:
+                if 'map' in k.lower():
+                    item = mapReplace(item, v)
+                if 'regex' in k.lower():
+                    item = regexReplace(item, v)
+                if 'replace' in k.lower():
+                    item = strictReplace(item, v)
+        return item
+    if type(data) is dict:
+        tDict = dict()
+        for key,value in data.items():
+            key = priorityTree(kwargs, key, 'key')
+            if isinstance(value, (tuple,list,set,dict)):
+                tDict[key] = filter(value, **kwargs)
+            else:
+                value = priorityTree(kwargs, value, 'value')
+                if value is not None:
+                    tDict[key] = value
+        return tDict
+    elif isinstance(data, (tuple,list,set)):
+        tList = list()
+        for item in data:
+            if isinstance(item, (tuple,list,set,dict)):
+                tList.append(filter(item, **kwargs))
+            else:
+                item = priorityTree(kwargs, item, 'value')
+                if item is not None:
+                    tList.append(item)
+        if type(data) is tuple:
+            return tuple(tList)
+        elif type(data) is set:
+            return set(tList)
+        return tList
+
+
+def camelCase(s):
+    import re
+    if s:
+        s = re.sub(r'(_|-)+', ' ', str(s)).title().replace(' ', '')
+        return ''.join([s[0].lower(), s[1:]])
+    return s
+
+def removeEmpty(s):
+    if type(s) is bool:
+        return s
+    if s:
+        return s
+    return None
+
+""" def removeEmpty(data, **kwargs):
+    Remove all empty values inside lists, tuples, sets or dictionaries
 
     Remove everything that is empty from lists, tuples, sets or dictionaries
 
@@ -31,7 +101,7 @@ def removeEmpty(data, **kwargs):
 
     Returns:
         The returned `data` with empty values removed
-    """
+    
     if isinstance(data, (tuple,list,set)):
         tList = list()
         for i in data:
@@ -60,7 +130,7 @@ def removeEmpty(data, **kwargs):
                         tDict[k] = removeEmpty(v,**kwargs)
                     else:
                         tDict[k] = v
-        return tDict
+        return tDict """
 
 
 def flatten(lists: list) -> list:
@@ -78,7 +148,7 @@ def flatten(lists: list) -> list:
 
 
 def add(lst, **kwargs) -> list:
-    newLst = []
+    newLst = list()
     for l in lst:
         newDict = dict()
         for kwarg in kwargs:
@@ -103,3 +173,63 @@ def add(lst, **kwargs) -> list:
             newDict[''.join([k[0].lower(), k[1:]])] = v
         newLst.append(newDict)
     return newLst """
+
+
+
+
+"""
+def filter(data, **kwargs):
+    if type(data) is dict:
+        tDict = dict()
+        for key,value in data.items():
+            keysMap = kwargs.get('keysMap')
+            if callable(keysMap):
+                keysMap = [keysMap]
+            if isinstance(keysMap, (tuple,list,set)):
+                for mapFunction in keysMap:
+                    if callable(mapFunction):
+                        key = mapFunction(key)
+            keysReplace = kwargs.get('keysReplace')
+            if type(keysReplace) is dict:
+                if key in keysReplace.keys():
+                    key = keysReplace[key]
+            if isinstance(value, (tuple,list,set,dict)):
+                tDict[key] = filter(value, **kwargs)
+            else:
+                valuesMap = kwargs.get('valuesMap')
+                if callable(valuesMap):
+                    valuesMap = [valuesMap]
+                if isinstance(valuesMap, (tuple,list,set)):
+                    for mapFunction in valuesMap:
+                        if callable(mapFunction):
+                            value = mapFunction(value)
+                valuesReplace = kwargs.get('valuesReplace')
+                if type(valuesReplace) is dict:
+                    if value in valuesReplace.keys():
+                        value = valuesReplace[value]
+                tDict[key] = value
+        return tDict
+    elif isinstance(data, (tuple,list,set)):
+        tList = list()
+        for item in data:
+            if isinstance(item, (tuple,list,set,dict)):
+                tList.append(filter(item, **kwargs))
+            else:
+                valuesMap = kwargs.get('valuesMap')
+                if callable(valuesMap):
+                    valuesMap = [valuesMap]
+                if isinstance(valuesMap, (tuple,list,set)):
+                    for mapFunction in valuesMap:
+                        if callable(mapFunction):
+                            item = mapFunction(item)
+                valuesReplace = kwargs.get('valuesReplace')
+                if type(valuesReplace) is dict:
+                    if item in valuesReplace.keys():
+                        item = valuesReplace[item]
+                tList.append(item)
+        if type(data) is tuple:
+            return tuple(tList)
+        elif type(data) is set:
+            return set(tList)
+        return tList
+"""
