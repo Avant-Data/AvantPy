@@ -82,7 +82,12 @@ def add(lst, **kwargs) -> list:
     for l in lst:
         newDict = dict()
         for kwarg in kwargs:
-            newDict[kwarg] = kwargs.get(kwarg)
+            argument = kwargs.get(kwarg)
+            if callable(argument):
+                value = argument(l)
+            else:
+                value = argument
+            newDict[kwarg] = value
         newDict.update({k:v for k,v in l.items()})
         newLst.append(newDict)
     return newLst
