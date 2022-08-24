@@ -18,12 +18,12 @@
 </p>
 
 ## Example Usage:
-```javascript
+```python
 import avantpy
 
 ianaList = avantpy.download.CSV('https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv').list
 ianaList = avantpy.utils.removeEmpty(ianaList)
-ianaList = avantpy.utils.add(ianaList, type='iana', index='iana', id=avantpy.utils.generateID(ianaList))
+ianaList = avantpy.utils.add(ianaList, type='iana', index='iana', id=avantpy.utils.generateID)
 
 """ Output (ianaList)
 [
