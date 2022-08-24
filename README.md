@@ -27,16 +27,11 @@ ianaList = avantpy.utils.add(ianaList, type='iana', index='iana', id=avantpy.uti
 
 """ Output (ianaList)
 [
-{'type': 'iana', 'index': 'iana', 'id': '212695eaca0ed17bfbd0676f7738d669', 'Port Number': '0', 'Transport Protocol': 'tcp', 'Description': 'Reserved', 'Assignee': '[Jon_Postel]', 'Contact': '[Jon_Postel]'},
-{'type': 'iana', 'index': 'iana', 'id': '212695eaca0ed17bfbd0676f7738d669', 'Port Number': '0', 'Transport Protocol': 'udp', 'Description': 'Reserved', 'Assignee': '[Jon_Postel]', 'Contact': '[Jon_Postel]'},
-{'type': 'iana', 'index': 'iana', 'id': '212695eaca0ed17bfbd0676f7738d669', 'Service Name': 'tcpmux', 'Port Number': '1', 'Transport Protocol': 'tcp', 'Description': 'TCP Port Service Multiplexer', 'Assignee': '[Mark_Lottor]', 'Contact': '[Mark_Lottor]'},
-{'type': 'iana', 'index': 'iana', 'id': '212695eaca0ed17bfbd0676f7738d669', 'Service Name': 'tcpmux', 'Port Number': '1', 'Transport Protocol': 'udp', 'Description': 'TCP Port Service Multiplexer', 'Assignee': '[Mark_Lottor]', 'Contact': '[Mark_Lottor]'},
-{'type': 'iana', 'index': 'iana', 'id': '212695eaca0ed17bfbd0676f7738d669', 'Service Name': 'compressnet', 'Port Number': '2', 'Transport Protocol': 'tcp', 'Description': 'Management Utility'},
-{'type': 'iana', 'index': 'iana', 'id': '212695eaca0ed17bfbd0676f7738d669', 'Service Name': 'compressnet', 'Port Number': '2', 'Transport Protocol': 'udp', 'Description': 'Management Utility'},
-{'type': 'iana', 'index': 'iana', 'id': '212695eaca0ed17bfbd0676f7738d669', 'Service Name': 'compressnet', 'Port Number': '3', 'Transport Protocol': 'tcp', 'Description': 'Compression Process', 'Assignee': '[Bernie_Volz]', 'Contact': '[Bernie_Volz]'},
-{'type': 'iana', 'index': 'iana', 'id': '212695eaca0ed17bfbd0676f7738d669', 'Service Name': 'compressnet', 'Port Number': '3', 'Transport Protocol': 'udp', 'Description': 'Compression Process', 'Assignee': '[Bernie_Volz]', 'Contact': '[Bernie_Volz]'},
-{'type': 'iana', 'index': 'iana', 'id': '212695eaca0ed17bfbd0676f7738d669', 'Port Number': '4', 'Transport Protocol': 'tcp', 'Description': 'Unassigned'},
-{'type': 'iana', 'index': 'iana', 'id': '212695eaca0ed17bfbd0676f7738d669', 'Port Number': '4', 'Transport Protocol': 'udp', 'Description': 'Unassigned'}
+{'type': 'iana', 'index': 'iana', 'id': '724fd6be68bc796a744af51f4bec273f', 'Port Number': '0', 'Transport Protocol': 'tcp', 'Description': 'Reserved', 'Assignee': '[Jon_Postel]', 'Contact': '[Jon_Postel]'}
+{'type': 'iana', 'index': 'iana', 'id': '775a75c993149105c167d0d1ad0a8baa', 'Port Number': '0', 'Transport Protocol': 'udp', 'Description': 'Reserved', 'Assignee': '[Jon_Postel]', 'Contact': '[Jon_Postel]'}
+{'type': 'iana', 'index': 'iana', 'id': 'f6d45c96471cd1dc60e8893bf113b631', 'Service Name': 'tcpmux', 'Port Number': '1', 'Transport Protocol': 'tcp', 'Description': 'TCP Port Service Multiplexer', 'Assignee': '[Mark_Lottor]', 'Contact': '[Mark_Lottor]'}
+{'type': 'iana', 'index': 'iana', 'id': '1c3cb600d80df63da46971a64f003595', 'Service Name': 'tcpmux', 'Port Number': '1', 'Transport Protocol': 'udp', 'Description': 'TCP Port Service Multiplexer', 'Assignee': '[Mark_Lottor]', 'Contact': '[Mark_Lottor]'}
+{'type': 'iana', 'index': 'iana', 'id': '8c248f5ed127b89a30238ea355d67dd4', 'Service Name': 'compressnet', 'Port Number': '2', 'Transport Protocol': 'tcp', 'Description': 'Management Utility'}
 ]
 """
 ```
