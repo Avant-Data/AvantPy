@@ -39,7 +39,7 @@ def filter(data, **kwargs):
             if value in toReplace.keys():
                 value = toReplace[value]
         return value
-    def priorityTree(kwarg, item, word):
+    def priorityDecision(kwarg, item, word):
         for k,v in kwarg.items():
             if word in k:
                 if 'map' in k.lower():
@@ -52,11 +52,11 @@ def filter(data, **kwargs):
     if type(data) is dict:
         tDict = dict()
         for key,value in data.items():
-            key = priorityTree(kwargs, key, 'key')
+            key = priorityDecision(kwargs, key, 'key')
             if isinstance(value, (tuple,list,set,dict)):
                 tDict[key] = filter(value, **kwargs)
             else:
-                value = priorityTree(kwargs, value, 'value')
+                value = priorityDecision(kwargs, value, 'value')
                 if value is not None:
                     tDict[key] = value
         return tDict
@@ -66,7 +66,7 @@ def filter(data, **kwargs):
             if isinstance(item, (tuple,list,set,dict)):
                 tList.append(filter(item, **kwargs))
             else:
-                item = priorityTree(kwargs, item, 'value')
+                item = priorityDecision(kwargs, item, 'value')
                 if item is not None:
                     tList.append(item)
         if type(data) is tuple:
@@ -75,6 +75,11 @@ def filter(data, **kwargs):
             return set(tList)
         return tList
 
+
+def thread(method, **kwargs):
+    import concurrent.futures
+    with concurrent.futures.ThreadPoolExecutor(max_workers=kwargs.get('workers', 1)) as executor:
+        executor.map(method, kwargs.get('chunks'))
 
 def camelCase(s):
     import re
