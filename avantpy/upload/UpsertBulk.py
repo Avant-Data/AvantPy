@@ -1,52 +1,64 @@
 # -*- coding: utf-8 -*-
+from urllib3.exceptions import InsecureRequestWarning
+import concurrent.futures
 import logging
-import urllib
-import csv
+import requests
+import json
+
 
 class UpsertBulk():
 
-    def __init__(self, url, **kwargs):
+    def __init__(self, lst, **kwargs):
         self.log = logging.getLogger(__name__)
-        self.url = url
-        self.decode = kwargs.get('decode', 'utf-8')
-        self.start = kwargs.get('start')
-        self.end = kwargs.get('end')
-        self.readCSV()
+        self.baseurl = kwargs.get('baseurl', 'https://127.0.0.1')
+        self.api = kwargs.get(
+            'api', '/avantapi/avantData/index/bulk/general/upsert')
+        self.url = kwargs.get('url', self.baseurl+self.api)
+        self.cluster = kwargs.get('cluster', 'AvantData')
+        self.verifySSL = kwargs.get('verifySSL', False)
+        self.chunkSize = kwargs.get('chunkSize', 1000)
+        self.threads = kwargs.get('threads', 10)
+        self.indexed = 0
+        requests.packages.urllib3.disable_warnings(
+            category=InsecureRequestWarning)
+        self.sendToIndex(lst)
 
-    def readCSV(self):
+    def uploadToIndex(self, chunk):
+        jsonToSend = {'body': chunk}
+        headers = {'cluster': self.cluster}
+        responseBulk = requests.put(url=self.url,
+                                    headers=headers,
+                                    data=json.dumps(jsonToSend),
+                                    verify=self.verifySSL)
         try:
-            self.log.info('Reading '+self.url)
-            response = urllib.request.urlopen(self.url)
-            self.list = [i for i in csv.DictReader(
-                [line.decode(self.decode, errors='ignore') for line in response][self.start:self.end])]
+            responseJson = json.loads(responseBulk.text)
+            if responseJson.get('items'):
+                successful, failed = (0, 0)
+                for item in responseJson.get('items'):
+                    try:
+                        successful += item.get('update').get(
+                            '_shards').get('successful')
+                        failed += item.get('update').get('_shards').get('failed')
+                    except:
+                        failed += 1
+                        self.log.warning(item.get('update').get('error'))
+                if successful + failed > 0:
+                    self.log.info('Successful: '+successful, +
+                                  ' ### Failed: '+failed)
+                    self.indexed += successful
         except Exception as e:
-            self.log.info('Failed to read '+self.url)
-            self.log.debug(e)
-""" def uploadToIndex(self, **kwargs):
-    chunk = kwargs.get('chunk', 1000)
-    clusterToIndex = kwargs.get('clusterToIndex', 'AvantData')
-    debugToIndex = kwargs.get('debugToIndex', 'False')
-    url = kwargs.get('url', '')
-    import requests
-    import json
-    jsonToSend = {'body': chunk}
-    headers = {"cluster": clusterToIndex, "debug": debugToIndex}
-    responseBulk = requests.put(url=url+self.urlUpsertBulk, headers=headers,
-                                data=json.dumps(jsonToSend), verify=self.verifySSL)
-    try:
-        responseJson = json.loads(responseBulk.text)
-        if self.debug(responseJson, 'items'):
-            successful, failed = (0, 0)
-            for item in self.debug(responseJson, 'items'):
-                try:
-                    successful += self.debug(item, 'update>_shards>successful')
-                    failed += self.debug(item, 'update>_shards>failed')
-                except:
-                    failed += 1
-                    print(self.debug(item, 'update>error'))
-            if successful + failed > 0:
-                print('Successful:', successful, '/ Failed:', failed)
-                self.indexed += successful
-    except Exception as e:
-        print(responseBulk.text, '\n', e)
- """
+            self.log.warning(responseBulk.text+'\n'+e)
+
+    def sendToIndex(self, listToIndex):
+        if listToIndex:
+            self.log.info('Total: '+len(listToIndex))
+            chunks = [listToIndex]
+            if len(listToIndex) > self.chunkSize:
+                chunks = [listToIndex[x:x+self.chunkSize]
+                          for x in range(0, len(listToIndex), self.chunkSize)]
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.threads) as executor:
+                executor.map(self.uploadToIndex, chunks)
+            self.log.info(self.indexed+' successfully indexed')
+            self.indexed = 0
+        else:
+            self.log.info('Empty list')
