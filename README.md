@@ -40,7 +40,7 @@ ianaList = avantpy.utils.add(ianaList,
                              index='iana',
                              id=avantpy.utils.generateID,
                             )
-avantpy.upload.UpserBulk(ianaList,
+avantpy.upload.UpsertBulk(ianaList,
                          baseurl='https://avantnightly.avantsec.com.br/'
                         )
 ```
