@@ -49,6 +49,9 @@ def filter(data, **kwargs):
                 if 'replace' in k.lower():
                     item = strictReplace(item, v)
         return item
+    threads = kwargs.pop('threads', None)
+    if threads:
+        return threadList(filter, data, **kwargs, workers=threads)
     if type(data) is dict:
         tDict = dict()
         for key,value in data.items():
@@ -76,10 +79,16 @@ def filter(data, **kwargs):
         return tList
 
 
-def thread(method, **kwargs):
+def threadList(method, lst, **kwargs):
     import concurrent.futures
-    with concurrent.futures.ThreadPoolExecutor(max_workers=kwargs.get('workers', 1)) as executor:
-        executor.map(method, kwargs.get('chunks'))
+    from functools import partial
+    workers = kwargs.pop('workers', 1)
+    lists = unflatten(lst, kwargs.pop('chunks', workers))
+    completeList = list()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        for result in executor.map(partial(method,**kwargs), lists):
+            completeList.extend(result)
+        return completeList
 
 def camelCase(s):
     import re
@@ -89,53 +98,21 @@ def camelCase(s):
     return s
 
 def removeEmpty(s):
+    """Return None if a value is empty
+
+    Replace empty values with None
+
+    Args:
+        s (str): String to be checked
+
+    Returns:
+        The returned `s` with empty values replace by None
+    """
     if type(s) is bool:
         return s
     if s:
         return s
     return None
-
-""" def removeEmpty(data, **kwargs):
-    Remove all empty values inside lists, tuples, sets or dictionaries
-
-    Remove everything that is empty from lists, tuples, sets or dictionaries
-
-    Args:
-        data: List, set, tuple or dict with empty values to be removed
-        all: (bool, optional): Remove empty and False values from `data`
-
-    Returns:
-        The returned `data` with empty values removed
-    
-    if isinstance(data, (tuple,list,set)):
-        tList = list()
-        for i in data:
-            if type(i) is bool and not kwargs.get('all'):
-                tList.append(i)
-            else:
-                if i:
-                    if isinstance(i, (tuple,list,set,dict)):
-                        tList.append(removeEmpty(i,**kwargs))
-                    else:
-                        tList.append(i)
-        if type(data) is list:
-            return tList
-        if type(data) is tuple:
-            return tuple(tList)
-        if type(data) is set:
-            return set(tList)
-    if type(data) is dict:
-        tDict = dict()
-        for k,v in data.items():
-            if type(v) is bool and not kwargs.get('all'):
-                tDict[k] = v
-            else:
-                if v:
-                    if isinstance(v, (tuple,list,set,dict)):
-                        tDict[k] = removeEmpty(v,**kwargs)
-                    else:
-                        tDict[k] = v
-        return tDict """
 
 
 def flatten(lists: list) -> list:
@@ -152,7 +129,15 @@ def flatten(lists: list) -> list:
     return [l for ls in lists for l in ls]
 
 
+def unflatten(lst: list, chunks: int) -> list:
+    pace = max(1,len(lst)//chunks)
+    return [lst[i:i+pace] for i in range(0, len(lst), pace)]
+
+
 def add(lst, **kwargs) -> list:
+    threads = kwargs.pop('threads', None)
+    if threads:
+        return threadList(add, lst, **kwargs, workers=threads)
     newLst = list()
     for l in lst:
         newDict = dict()
@@ -166,75 +151,3 @@ def add(lst, **kwargs) -> list:
         newDict.update({k:v for k,v in l.items()})
         newLst.append(newDict)
     return newLst
-
-
-""" def camelCase(lst) -> list:
-    from re import sub
-    newLst = []
-    for l in lst:
-        newDict = dict
-        for k,v in l.items():
-            k = sub('[^\d\W]+', ' ', k).title().replace(' ', '')
-            newDict[''.join([k[0].lower(), k[1:]])] = v
-        newLst.append(newDict)
-    return newLst """
-
-
-
-
-"""
-def filter(data, **kwargs):
-    if type(data) is dict:
-        tDict = dict()
-        for key,value in data.items():
-            keysMap = kwargs.get('keysMap')
-            if callable(keysMap):
-                keysMap = [keysMap]
-            if isinstance(keysMap, (tuple,list,set)):
-                for mapFunction in keysMap:
-                    if callable(mapFunction):
-                        key = mapFunction(key)
-            keysReplace = kwargs.get('keysReplace')
-            if type(keysReplace) is dict:
-                if key in keysReplace.keys():
-                    key = keysReplace[key]
-            if isinstance(value, (tuple,list,set,dict)):
-                tDict[key] = filter(value, **kwargs)
-            else:
-                valuesMap = kwargs.get('valuesMap')
-                if callable(valuesMap):
-                    valuesMap = [valuesMap]
-                if isinstance(valuesMap, (tuple,list,set)):
-                    for mapFunction in valuesMap:
-                        if callable(mapFunction):
-                            value = mapFunction(value)
-                valuesReplace = kwargs.get('valuesReplace')
-                if type(valuesReplace) is dict:
-                    if value in valuesReplace.keys():
-                        value = valuesReplace[value]
-                tDict[key] = value
-        return tDict
-    elif isinstance(data, (tuple,list,set)):
-        tList = list()
-        for item in data:
-            if isinstance(item, (tuple,list,set,dict)):
-                tList.append(filter(item, **kwargs))
-            else:
-                valuesMap = kwargs.get('valuesMap')
-                if callable(valuesMap):
-                    valuesMap = [valuesMap]
-                if isinstance(valuesMap, (tuple,list,set)):
-                    for mapFunction in valuesMap:
-                        if callable(mapFunction):
-                            item = mapFunction(item)
-                valuesReplace = kwargs.get('valuesReplace')
-                if type(valuesReplace) is dict:
-                    if item in valuesReplace.keys():
-                        item = valuesReplace[item]
-                tList.append(item)
-        if type(data) is tuple:
-            return tuple(tList)
-        elif type(data) is set:
-            return set(tList)
-        return tList
-"""
