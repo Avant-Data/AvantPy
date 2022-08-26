@@ -11,6 +11,7 @@ r"""
 
 from . import utils
 from . import download
+from . import upload
 
 import logging
 from logging import NullHandler
