@@ -43,22 +43,21 @@ class UpsertBulk():
                         failed += 1
                         self.log.warning(item.get('update').get('error'))
                 if successful + failed > 0:
-                    self.log.info('Successful: '+successful, +
-                                  ' ### Failed: '+failed)
+                    self.log.info('Successful: {}, Failed: {}'.format(successful, failed))
                     self.indexed += successful
         except Exception as e:
             self.log.warning(responseBulk.text+'\n'+e)
 
     def sendToIndex(self, listToIndex):
         if listToIndex:
-            self.log.info('Total: '+len(listToIndex))
+            self.log.info('Total: {}'.format(len(listToIndex)))
             chunks = [listToIndex]
             if len(listToIndex) > self.chunkSize:
                 chunks = [listToIndex[x:x+self.chunkSize]
                           for x in range(0, len(listToIndex), self.chunkSize)]
             with concurrent.futures.ThreadPoolExecutor(max_workers=self.threads) as executor:
                 executor.map(self.uploadToIndex, chunks)
-            self.log.info(self.indexed+' successfully indexed')
+            self.log.info('{} successfully indexed'.format(self.indexed))
             self.indexed = 0
         else:
             self.log.info('Empty list')

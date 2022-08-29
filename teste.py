@@ -17,17 +17,19 @@ ianaList = avantpy.utils.filter(ianaList,
                                 },
                                 #threads=100
                                 )
-""" avantpy.upload.Template(name='iana_teste',
+avantpy.upload.Template(name='ina_teste',
                         template=ianaList,
                         baseurl='https://avantnightly.avantsec.com.br/'
-                       ) """
+                       )
 ianaList = avantpy.utils.add(ianaList,
-                             type='iana',
-                             index='iana',
+                             type='ina_teste',
+                             index='ina_teste',
                              id=avantpy.utils.generateID,
                              # threads=10
                              )
-#avantpy.upload.UpserBulk(ianaList)
+avantpy.upload.UpsertBulk(ianaList,
+                          baseurl='https://avantnightly.avantsec.com.br/'
+                          )
 for i in range(5): print(ianaList[i])
 
 endTime = perf_counter()
