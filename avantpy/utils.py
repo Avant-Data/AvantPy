@@ -20,7 +20,7 @@ def generateID(data, **kwargs) -> str:
     return hashlib.md5(data.encode('utf-8')).hexdigest()
 
 
-def filter(data, **kwargs):
+def edit(data, **kwargs):
     import re
     def mapReplace(value, toReplace):
         if callable(toReplace):
@@ -51,13 +51,13 @@ def filter(data, **kwargs):
         return item
     threads = kwargs.pop('threads', None)
     if threads:
-        return threadList(filter, data, **kwargs, workers=threads)
+        return threadList(edit, data, **kwargs, workers=threads)
     if type(data) is dict:
         tDict = dict()
         for key,value in data.items():
             key = priorityDecision(kwargs, key, 'key')
             if isinstance(value, (tuple,list,set,dict)):
-                tDict[key] = filter(value, **kwargs)
+                tDict[key] = edit(value, **kwargs)
             else:
                 value = priorityDecision(kwargs, value, 'value')
                 if value is not None:
@@ -67,7 +67,7 @@ def filter(data, **kwargs):
         tList = list()
         for item in data:
             if isinstance(item, (tuple,list,set,dict)):
-                tList.append(filter(item, **kwargs))
+                tList.append(edit(item, **kwargs))
             else:
                 item = priorityDecision(kwargs, item, 'value')
                 if item is not None:
@@ -89,6 +89,10 @@ def threadList(method, lst, **kwargs):
         for result in executor.map(partial(method,**kwargs), lists):
             completeList.extend(result)
         return completeList
+
+def humanSize(bytes, units=[' bytes','KB','MB','GB','TB', 'PB', 'EB']):
+    """ Returns a human readable string representation of bytes """
+    return str(bytes) + units[0] if bytes < 1024 else humanSize(bytes>>10, units[1:])
 
 def camelCase(s):
     import re
@@ -132,6 +136,13 @@ def flatten(lists: list) -> list:
 def unflatten(lst: list, chunks: int) -> list:
     pace = max(1,len(lst)//chunks)
     return [lst[i:i+pace] for i in range(0, len(lst), pace)]
+
+
+def getObj(dic, *args):    
+        for obj in args:
+            if obj:
+                dic = dic.get(obj)
+        return dic
 
 
 def add(lst, **kwargs) -> list:

@@ -17,13 +17,20 @@
     <br> 
 </p>
 
+## Summary
+
+- [Sobre](#about)
+- [Instalação](#installing)
+- [Utilização](#usage)
+- [Testando](#testing)
+
 ## Example Usage:
 ```python
 import avantpy
 
 url = 'https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv'
 ianaList = avantpy.download.CSV(url).list
-ianaList = avantpy.utils.filter(ianaList,
+ianaList = avantpy.utils.edit(ianaList,
                                 keysMap=avantpy.utils.camelCase,
                                 valuesMap=avantpy.utils.removeEmpty,
                                 valuesRegex={

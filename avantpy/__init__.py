@@ -13,6 +13,7 @@ r"""
 from . import utils
 from . import download
 from . import upload
+from .Transfer import *
 
 import logging
 from logging import NullHandler

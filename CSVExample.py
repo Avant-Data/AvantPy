@@ -8,7 +8,7 @@ ianaList = avantpy.download.CSV(url).list
 for i in range(5): print(ianaList[i])
 
 starTime = perf_counter()
-ianaList = avantpy.utils.filter(ianaList,
+ianaList = avantpy.utils.edit(ianaList,
                                 keysMap=avantpy.utils.camelCase,
                                 valuesMap=avantpy.utils.removeEmpty,
                                 valuesRegex={
@@ -17,19 +17,19 @@ ianaList = avantpy.utils.filter(ianaList,
                                 },
                                 #threads=100
                                 )
-avantpy.upload.Template(name='ina_teste',
+""" avantpy.upload.Template(name='ina_teste',
                         template=ianaList,
                         baseurl='https://avantnightly.avantsec.com.br/'
-                       )
+                       ) """
 ianaList = avantpy.utils.add(ianaList,
                              type='ina_teste',
                              index='ina_teste',
                              id=avantpy.utils.generateID,
                              # threads=10
                              )
-avantpy.upload.UpsertBulk(ianaList,
+""" avantpy.upload.UpsertBulk(ianaList,
                           baseurl='https://avantnightly.avantsec.com.br/'
-                          )
+                          ) """
 for i in range(5): print(ianaList[i])
 
 endTime = perf_counter()

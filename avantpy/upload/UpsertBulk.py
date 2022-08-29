@@ -24,7 +24,7 @@ class UpsertBulk():
         self.sendToIndex(lst)
 
     def uploadToIndex(self, chunk):
-        jsonToSend = {'body': chunk}
+        jsonToSend = {'body': json.loads(json.dumps(chunk))}
         headers = {'cluster': self.cluster}
         responseBulk = requests.put(url=self.url,
                                     headers=headers,
