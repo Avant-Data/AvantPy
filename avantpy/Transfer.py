@@ -32,4 +32,6 @@ class Transfer():
                               index=self.index,
                               id=utils.generateID
                               )
+        for i in range(5):
+            print(self.list[i])
         upload.UpsertBulk(self.list, **kwargs)
