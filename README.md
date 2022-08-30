@@ -68,7 +68,8 @@ Also, as the json is made up of the following keys:
 ```python
 import avantpy
 
-avantpy.Transfer(json='https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json',
+JSON_URL = 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json'
+avantpy.Transfer(json=JSON_URL,
                  obj='vulnerabilities',
                  name='cisakevs',
                  aliases='KEV'
@@ -80,7 +81,7 @@ avantpy.Transfer(json='https://www.cisa.gov/sites/default/files/feeds/known_expl
 | type | index | id |  cveID |  vendorProject | product | vulnerabilityName | dateAdded | shortDescription | requiredAction | dueDate | notes |
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | cisakevs | cisakevs | 04019464675c64463e6e7d453309c919 | CVE-2021-27104 | Accellion | FTA | Accellion FTA OS Command Injection Vulnerability | 2021-11-03 | Accellion FTA 9_12_370 and earlier is affected by OS command execution via a crafted POST request to various admin endpoints. | Apply updates per vendor instructions. | 2021-11-17 | '' |
-| cisakevs | cisakevs | 0c2df08bca3ab75505d5fc606eec97bb | CVE-2021-27102 | Accellion | FTA | Accellion FTA OS Command Injection Vulnerability | 2021-11-03 | 'Accellion FTA 9_12_411 and earlier is affected by OS command execution via a local web service call. | Apply updates per vendor instructions. | 2021-11-17 | '' |
+| cisakevs | cisakevs | 0c2df08bca3ab75505d5fc606eec97bb | CVE-2021-27102 | Accellion | FTA | Accellion FTA OS Command Injection Vulnerability | 2021-11-03 | Accellion FTA 9_12_411 and earlier is affected by OS command execution via a local web service call. | Apply updates per vendor instructions. | 2021-11-17 | '' |
 | cisakevs | cisakevs | ac4b3c13380a12f457760d82913f0926 | CVE-2021-27101 | Accellion | FTA | Accellion FTA SQL Injection Vulnerability | 2021-11-03 | Accellion FTA 9_12_370 and earlier is affected by SQL injection via a crafted Host header in a request to document_root.html. | Apply updates per vendor instructions. | 2021-11-17 | '' |
 | cisakevs | cisakevs | 535855aaa714b2b26b73e2047ecdf531 | CVE-2021-27103 | Accellion | FTA | Accellion FTA SSRF Vulnerability | 2021-11-03 | Accellion FTA 9_12_411 and earlier is affected by SSRF via a crafted POST request to wmProgressstat.html. | Apply updates per vendor instructions. | 2021-11-17 | '' |
 | cisakevs | cisakevs | 5500d99c5d2b14be3be7fd287bc773d3 | CVE-2021-21017 | Adobe | Acrobat and Reader | Adobe Acrobat and Reader Heap-based Buffer Overflow Vulnerability | 2021-11-03 | Acrobat Reader DC versions versions 2020.013.20074 (and earlier), 2020.001.30018 (and earlier) and 2017.011.30188 (and earlier) are affected by a heap-based buffer overflow vulnerability. An unauthenticated attacker could leverage this vulnerability to achieve arbitrary code execution in the context of the current user. Exploitation of this issue requires user interaction in that a victim must open a malicious file | Apply updates per vendor instructions. | 2021-11-17 | '' |
