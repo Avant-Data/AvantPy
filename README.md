@@ -66,7 +66,7 @@ JSON_URL = 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulne
 avantpy.Transfer(json=JSON_URL,
                  obj='vulnerabilities',
                  name='cisakevs',
-                 aliases='KEV'
+                 aliases='KEV',
                  baseurl='https://192.168.102.133/'
                  )
 ```
