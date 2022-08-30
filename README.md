@@ -71,7 +71,7 @@ avantpy.Transfer(json=JSON_URL,
                  )
 ```
 
-####  Data that will be indexed in AvantData
+####  Data that will be indexed in AvantData (first 5 documents)
 | type | index | id |  cveID |  vendorProject | product | vulnerabilityName | dateAdded | shortDescription | requiredAction | dueDate | notes |
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | cisakevs | cisakevs | 04019464675c64463e6e7d453309c919 | CVE-2021-27104 | Accellion | FTA | Accellion FTA OS Command Injection Vulnerability | 2021-11-03 | Accellion FTA 9_12_370 and earlier is affected by OS command execution via a crafted POST request to various admin endpoints. | Apply updates per vendor instructions. | 2021-11-17 | '' |
