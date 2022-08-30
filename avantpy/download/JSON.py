@@ -21,10 +21,8 @@ class JSON():
     def readJSON(self):
         try:
             self.log.info('Reading {}'.format(self.url))
-            response = requests.get(self.url, headers=self.headers)
-            self.jsonResponse = response.json()
-            jsonData = getObj(self.jsonResponse, *self.destObj)
-            self.list = jsonData
+            self.response = requests.get(self.url, headers=self.headers)
+            self.data = getObj(self.response.json(), *self.destObj)
         except Exception as e:
             self.log.info('Failed to read {}'.format(self.url))
             self.log.debug(e)

@@ -145,6 +145,19 @@ def getObj(dic, *args):
         return dic
 
 
+def strToType(s):
+    from ast import literal_eval
+    try:
+        return type(literal_eval(s))
+    except Exception:
+        return type(s)
+
+
+def dateToEpochMillis(s: str) -> int:
+    import dateparser
+    return int(dateparser.parse(s).strftime('%s'))*1000
+
+
 def add(lst, **kwargs) -> list:
     threads = kwargs.pop('threads', None)
     if threads:

@@ -24,6 +24,7 @@ class Template():
         self.aliases = kwargs.get('aliases', re.sub(
             r'[^a-zA-Z0-9].*', '', self.name))
         self.order = kwargs.get('order', 1)
+        self.typeMap = kwargs.get('typeMap', {})
         requests.packages.urllib3.disable_warnings(
             category=InsecureRequestWarning)
         self.formattedTemplate = dict()
@@ -34,19 +35,49 @@ class Template():
         lengths = [len(obj) for obj in lst]
         return lengths.index(max(lengths))
 
+    def propertiesMap(self, key):
+        valuesMap = {
+            "date": {
+                "type": "date",
+                "format": "yyyy/MM/dd HH:mm:ss||epoch_millis"
+            },
+            "long": {
+                "type": "long"
+            },
+            "int": {
+                "type": "integer"
+            },
+            "integer": {
+                "type": "integer"
+            },
+            "ip": {
+                "type": "ip"
+            },
+            "object": {
+                "type": "object"
+            },
+             "float": {
+                "type": "float"
+            },
+        }
+        return valuesMap[key]
+
     def generatedProperties(self, template):
         newDict = dict()
         for k in template[self.getMaxKeys(template)].keys():
-            newDict[k] = {
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 256
-                    }
-                },
-                "analyzer": "WS"
-            }
+            if k in self.typeMap.keys():
+                newDict[k] = self.propertiesMap(self.typeMap[k])
+            else:
+                newDict[k] = {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    },
+                    "analyzer": "WS"
+                }
         if not newDict.get('GenerateTime'):
             newDict["GenerateTime"] = {
                 "type": "date",
