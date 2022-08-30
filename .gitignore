@@ -1,4 +1,7 @@
-# Ignore tests
+# Scripts
+scripts/
+
+# Tests
 .github/workflows/
 
 # Byte-compiled / optimized / DLL files
