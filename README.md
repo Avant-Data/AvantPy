@@ -25,13 +25,9 @@
 - [Built Using](#builtUsing)
 - [TODO](#TODO)
 
----
-
 ## About <a name = "about"></a>
 
 AvantPy was created with the intention of making it easier to index data in AvantData. This library contains a set of tools capable of prepare data to be in a list of dictionaries format and, after that, manipulate this data in order to index it in AvantData with AvantApi
-
----
 
 ## Installing<a name = "installing"></a>
 
@@ -40,8 +36,6 @@ The installation can be done by exporting the [avantpy](./avantpy) folder to the
 ```shell
 python setup.py bdist_wheel && pip install dist/avantpy*.whl
 ```
-
----
 
 ## Usage <a name = "usage"></a>
 
@@ -135,13 +129,9 @@ avantpy.upload.UpsertBulk(ianaList,
 | tcpmux | 1 | udp | TCP Port Service Multiplexer | Mark Lottor | Mark Lottor | iana | iana | ed23fa12819a63198b5c0b171ebbbf2d | 1661543905000 |
 | compressnet | 2 | tcp | Management Utility | | | iana | iana | 15e0d1cd9db50a856604e28614429b5c | 1661543905000 |
 
---- 
-
 ## Built Using <a name = "builtUsing"></a>
 - [AvantData](https://www.avantdata.com.br/) - Platform for analysis, correlation and data management in corporate networks
 - [AvantApi](https://avantapi.avantsec.com.br/) - Family of RESTFUL API endpoints for customizing actions in AvantData
-
----
 
 ## TODO <a name = "TODO"></a>
 - Improve the auto generation of Templates
