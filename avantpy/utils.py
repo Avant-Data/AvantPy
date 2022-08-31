@@ -22,23 +22,6 @@ def generateID(data, **kwargs) -> str:
 
 def edit(data, **kwargs):
     import re
-    """ def mapReplace(value, toReplace):
-        if callable(toReplace):
-            toReplace = [toReplace]
-        if isinstance(toReplace, (tuple,list,set)):
-            for mapFunction in toReplace:
-                value = mapFunction(value)
-        return value """
-    """ def regexReplace(value, toReplace):
-        if type(toReplace) is dict and value:
-            for k,v in toReplace.items():
-                value = re.sub(k, v, value)
-        return value """
-    """ def strictReplace(value, toReplace):
-        if type(toReplace) is dict:
-            if value in toReplace.keys():
-                value = toReplace[value]
-        return value """
     def regexReplace(value, toReplace):
         for k,v in toReplace.items():
             value = re.sub(k, v, value)
@@ -55,16 +38,6 @@ def edit(data, **kwargs):
         elif type(toReplace) is dict and toReplace:
             value = regexReplace(value, toReplace)
         return value
-    """ def priorityDecision(kwarg, item, word):
-        for k,v in kwarg.items():
-            if word in k:
-                if 'map' in k.lower():
-                    item = mapReplace(item, v)
-                if 'regex' in k.lower():
-                    item = regexReplace(item, v)
-                if 'replace' in k.lower():
-                    item = strictReplace(item, v)
-        return item """
     threads = kwargs.pop('threads', None)
     keysReplace = kwargs.get('keys')
     valuesReplace = kwargs.get('values')
@@ -74,7 +47,6 @@ def edit(data, **kwargs):
     if type(data) is dict:
         tDict = dict()
         for key,value in data.items():
-            #key = priorityDecision(kwargs, key, 'key')
             if keysReplace:
                 key = replaceMap(key, keysReplace)
             if isinstance(value, (tuple,list,set,dict)):
@@ -82,12 +54,9 @@ def edit(data, **kwargs):
             else:
                 if valuesReplace:
                     value = replaceMap(value, valuesReplace)
-                #value = priorityDecision(kwargs, value, 'value')
                 if key in entireReplace.keys():
-                    #tDict[key] = regexReplace(value, entireReplace[key])
                     value = replaceMap(value, entireReplace[key])
                 if value is not None:
-                    #entireReplace = kwargs.get('entire', {})
                     tDict[key] = value
         return tDict
     elif isinstance(data, (tuple,list,set)):
@@ -96,7 +65,6 @@ def edit(data, **kwargs):
             if isinstance(item, (tuple,list,set,dict)):
                 tList.append(edit(item, **kwargs))
             else:
-                #item = priorityDecision(kwargs, item, 'value')
                 if valuesReplace:
                     item = replaceMap(item, valuesReplace)
                 if item is not None:
