@@ -15,7 +15,7 @@ class Transfer():
 
     def transfer(self, **kwargs):
         if self.json:
-            self.list = download.JSON(url=self.json, **kwargs).list
+            self.list = download.JSON(url=self.json, **kwargs).data
         self.list = utils.edit(self.list,
                                keys={
                                    'id': '{}ID'.format(self.name),
