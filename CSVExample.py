@@ -10,12 +10,13 @@ for i in range(5):
 
 starTime = perf_counter()
 ianaList = avantpy.utils.edit(ianaList,
-                              keysMap=avantpy.utils.camelCase,
-                              valuesMap=avantpy.utils.removeEmpty,
-                              valuesRegex={
-                                  '[\[\]]': '',
-                                  '_': ' '
-                              },
+                              keys=avantpy.utils.camelCase,
+                              values=[
+                                  avantpy.utils.removeEmpty,
+                                  {
+                                      '[\[\]]': '',
+                                      '_': ' '
+                                  }]
                               # threads=100
                               )
 """ avantpy.upload.Template(name='ina_teste',
@@ -24,8 +25,8 @@ ianaList = avantpy.utils.edit(ianaList,
                         baseurl='https://192.168.102.133/'
                        ) """
 ianaList = avantpy.utils.add(ianaList,
-                             type='ina_teste',
-                             index='ina_teste',
+                             type='iana_teste',
+                             index='iana_teste',
                              id=avantpy.utils.generateID,
                              # threads=10
                              )

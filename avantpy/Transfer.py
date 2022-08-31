@@ -17,7 +17,7 @@ class Transfer():
         if self.json:
             self.list = download.JSON(url=self.json, **kwargs).list
         self.list = utils.edit(self.list,
-                               keysReplace={
+                               keys={
                                    'id': '{}ID'.format(self.name),
                                    'type': '{}type'.format(self.name),
                                    'index': '{}index'.format(self.name),
