@@ -90,12 +90,13 @@ import avantpy
 CSV_URL = 'https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv'
 ianaList = avantpy.download.CSV(CSV_URL).list
 ianaList = avantpy.utils.edit(ianaList,
-                              keysMap=avantpy.utils.camelCase,
-                              valuesMap=avantpy.utils.removeEmpty,
-                              valuesRegex={
+                              keys=avantpy.utils.camelCase,
+                              values=[avantpy.utils.removeEmpty,
+                                {
                                   '[\[\]]': '',
                                   '_': ' '
-                              })
+                                }
+                              ])
 avantpy.upload.Template(name='iana',
                         template=ianaList,
                         aliases='IANA',

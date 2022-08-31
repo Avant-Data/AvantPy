@@ -151,8 +151,10 @@ def strToType(s):
 
 
 def dateToEpochMillis(s: str) -> int:
-    import dateparser
-    return int(dateparser.parse(s).strftime('%s'))*1000
+    if type(s) is str:
+        import dateparser
+        return int(dateparser.parse(s).strftime('%s'))*1000
+    return s
 
 
 def add(lst, **kwargs) -> list:

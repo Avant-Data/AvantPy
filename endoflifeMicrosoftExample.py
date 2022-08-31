@@ -8,8 +8,8 @@ allLists = []
 def loopRequests(api):
     jsonR = avantpy.download.JSON(baseurl+api).data
     allLists.extend(jsonR.get('results'))
-    if '@nextLink' in jsonR.keys():
-        loopRequests(jsonR.get('@nextLink'))
+    """ if '@nextLink' in jsonR.keys():
+        loopRequests(jsonR.get('@nextLink')) """
 
 
 loopRequests(api)
@@ -33,8 +33,9 @@ avantpy.upload.Template(name='microsoft_end_of_life',
                             'lastModified': 'date'
                         }
                         )
+print(allLists)
 
-allLists = avantpy.utils.add(allLists,
+""" allLists = avantpy.utils.add(allLists,
                              type='microsoft_end_of_life',
                              index='microsoft_end_of_life',
                              id=avantpy.utils.generateID,
@@ -42,4 +43,4 @@ allLists = avantpy.utils.add(allLists,
 
 avantpy.upload.UpsertBulk(allLists,
                           baseurl='https://prod.avantdata.com.br/'
-                          )
+                          ) """
