@@ -1,6 +1,5 @@
 import requests
 import logging
-import json
 from ..utils import *
 
 class JSON():
@@ -16,13 +15,15 @@ class JSON():
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101 Firefox/60.0",
                 "X-Requested-With": "XMLHttpRequest",
             })
+        self.response = kwargs.get('reponse')
         self.data = []
         self.readJSON()
 
     def readJSON(self):
         try:
             self.log.info('Reading {}'.format(self.url))
-            self.response = requests.get(self.url, headers=self.headers)
+            if not self.response:
+                self.response = requests.get(self.url, headers=self.headers)
             self.data = getObj(self.response.json(), *self.destObj)
         except Exception as e:
             self.log.info('Failed to read {}'.format(self.url))

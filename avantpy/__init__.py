@@ -16,6 +16,5 @@ from . import upload
 from .Transfer import *
 
 import logging
-from logging import NullHandler
-logging.getLogger(__name__).addHandler(NullHandler())
-logging.basicConfig(level=logging.INFO)
+logging.getLogger(__name__).addHandler(logging.NullHandler())
+#logging.basicConfig(level=logging.DEBUG)
