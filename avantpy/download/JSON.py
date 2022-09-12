@@ -28,6 +28,3 @@ class JSON():
         except Exception as e:
             self.log.info('Failed to read {}'.format(self.url))
             self.log.debug(e)
-
-
-
