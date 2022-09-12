@@ -46,7 +46,8 @@ class UpsertBulk():
                     self.log.info('Successful: {}, Failed: {}'.format(self.indexed, failed))
                     self.indexed += successful
         except Exception as e:
-            self.log.warning(responseBulk.text+'\n'+e)
+            self.log.debug(responseBulk.text)
+            self.log.debug(e)
 
     def sendToIndex(self, listToIndex):
         if listToIndex:
