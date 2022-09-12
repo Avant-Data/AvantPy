@@ -10,28 +10,28 @@ class Transfer():
         self.type = kwargs.pop('type', self.name)
         self.index = kwargs.pop('index', self.name)
         self.json = kwargs.pop('json')
-        self.list = list()
+        self.data = list()
         self.transfer(**kwargs)
 
     def transfer(self, **kwargs):
         if self.json:
-            self.list = download.JSON(url=self.json, **kwargs).data
-        self.list = utils.edit(self.list,
+            self.data = download.JSON(url=self.json, **kwargs).data
+        self.data = utils.edit(self.data,
                                keys={
                                    'id': '{}ID'.format(self.name),
                                    'type': '{}type'.format(self.name),
                                    'index': '{}index'.format(self.name),
                                })
-        self.template = kwargs.pop('template', self.list)
+        self.template = kwargs.pop('template', self.data)
         upload.Template(name=self.name,
                         template=self.template,
                         **kwargs
                         )
-        self.list = utils.add(self.list,
+        self.data = utils.add(self.data,
                               type=self.type,
                               index=self.index,
                               id=utils.generateID
                               )
         for i in range(5):
-            print(self.list[i])
-        upload.UpsertBulk(self.list, **kwargs)
+            print(self.data[i])
+        upload.UpsertBulk(self.data, **kwargs)
