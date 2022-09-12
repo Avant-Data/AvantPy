@@ -43,7 +43,7 @@ class UpsertBulk():
                         failed += 1
                         self.log.warning(item.get('update').get('error'))
                 if successful + failed > 0:
-                    self.log.info('Successful: {}, Failed: {}'.format(successful, failed))
+                    self.log.info('Successful: {}, Failed: {}'.format(self.indexed, failed))
                     self.indexed += successful
         except Exception as e:
             self.log.warning(responseBulk.text+'\n'+e)

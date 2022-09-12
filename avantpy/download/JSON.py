@@ -16,6 +16,7 @@ class JSON():
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101 Firefox/60.0",
                 "X-Requested-With": "XMLHttpRequest",
             })
+        self.data = []
         self.readJSON()
 
     def readJSON(self):
