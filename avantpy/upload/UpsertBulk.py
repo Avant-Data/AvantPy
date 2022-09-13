@@ -10,7 +10,7 @@ import typing
 
 class UpsertBulk():
 
-    def __init__(self, lst: typing.Union[list, tuple, set],
+    def __init__(self, data: typing.Union[list, tuple, set],
                  baseurl: typing.Optional[str] = 'https://127.0.0.1',
                  api: typing.Optional[str] = '/avantapi/avantData/index/bulk/general/upsert',
                  cluster: typing.Optional[str] = 'AvantData',
@@ -30,7 +30,7 @@ class UpsertBulk():
         self.errors = Counter()
         requests.packages.urllib3.disable_warnings(
             category=InsecureRequestWarning)
-        self.sendToIndex(lst)
+        self.sendToIndex(data)
 
     def uploadToIndex(self, chunk: typing.Union[list, tuple, set]):
         jsonToSend = {'body': json.loads(json.dumps(chunk))}

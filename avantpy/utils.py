@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-import typing
+from typing import Callable, Set, Tuple, Union, Optional, List, Dict, Any
 
 
-def generateID(data: typing.Any) -> str:
-    """Generates a 32 character hexadecimal hash
-
-    This function generates an md5 hash, ideal to be used as an id when indexing a document to avoid document duplication
+def generateID(data: Any) -> str:
+    """Generates a 32 character hexadecimal hash, ideal to be used as an id when indexing a document to avoid document duplication
 
     Args:
         data: Input to generate the md5 hash
@@ -20,16 +18,13 @@ def generateID(data: typing.Any) -> str:
     return hashlib.md5(data.encode('utf-8')).hexdigest()
 
 
-def edit(data: typing.List[typing.Dict[typing.Union[str, int, float, bool], typing.Any]],
-         keys: typing.Union[typing.Callable, dict, list, tuple, set] = None,
-         values: typing.Union[typing.Callable, dict, list, tuple, set] = None,
-         items: typing.Dict[typing.Union[str, int, float,
-                                         bool], typing.Union[str, typing.Callable]] = {},
-         threads: int = None
-         ) -> typing.List[typing.Dict[typing.Union[str, int, float, bool], typing.Any]]:
+def edit(data: Union[List[dict], Tuple[dict], Set[dict]],
+         keys: Optional[Union[Callable, dict, list, tuple, set]] = None,
+         values: Optional[Union[Callable, dict, list, tuple, set]] = None,
+         items: Optional[Dict[Union[str, int, float, bool], Union[str, Callable]]] = {},
+         threads: Optional[int] = None
+         ) -> Union[List[dict], Tuple[dict], Set[dict]]:
     """Edit a list of dictionaries applying functions or regex in keys and values
-
-    This function executes another function or regex on each matching key, value or key values in a list of dictionaries
 
     Args:
         data: List of dictionaries to edit
@@ -95,11 +90,22 @@ def edit(data: typing.List[typing.Dict[typing.Union[str, int, float, bool], typi
         return tList
 
 
-def threadList(method, lst, **kwargs):
+def threadList(method: Callable, data: list, **kwargs):
+    """Executes a function in a list with ThreadPoolExecutor
+
+    Args:
+        method: Function to execute with ThreadPoolExecutor
+        data: List to be broken into several lists
+        workers: Number of threads
+        chunks: Number of parts to divide the list
+
+    Returns:
+        The list after the function with threads has been executed
+    """
     import concurrent.futures
     from functools import partial
     workers = kwargs.pop('workers', 1)
-    lists = unflatten(lst, kwargs.pop('chunks', workers))
+    lists = unflatten(data, kwargs.pop('chunks', workers))
     completeList = list()
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         for result in executor.map(partial(method, **kwargs), lists):
@@ -157,10 +163,10 @@ def unflatten(lst: list, chunks: int) -> list:
     return [lst[i:i+pace] for i in range(0, len(lst), pace)]
 
 
-def getObj(dic, *args):
-    for obj in args:
-        if obj:
-            dic = dic.get(obj)
+def getData(dic, *args):
+    for data in args:
+        if data:
+            dic = dic.get(data)
     return dic
 
 

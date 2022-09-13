@@ -7,7 +7,7 @@ class JSON():
     def __init__(self, url, **kwargs):
         self.log = logging.getLogger(__name__)
         self.url = url
-        self.destObj = kwargs.get('obj') if isinstance(kwargs.get('obj'), (list, tuple, set)) else [kwargs.get('obj')]
+        self.destData = kwargs.get('data') if isinstance(kwargs.get('data'), (list, tuple, set)) else [kwargs.get('data')]
         self.headers = kwargs.get('headers', {
                 "Accept": "application/json, text/javascript, */*; q=0.01",
                 "Accept-Encoding": "deflate, gzip, br",
@@ -24,7 +24,7 @@ class JSON():
             self.log.info('Reading {}'.format(self.url))
             if not self.response:
                 self.response = requests.get(self.url, headers=self.headers)
-            self.data = getObj(self.response.json(), *self.destObj)
+            self.data = getData(self.response.json(), *self.destObj)
         except Exception as e:
             self.log.info('Failed to read {}'.format(self.url))
             self.log.debug(e)
