@@ -27,8 +27,7 @@ class Template():
         self.typeMap = kwargs.get('typeMap', {})
         requests.packages.urllib3.disable_warnings(
             category=InsecureRequestWarning)
-        self.formattedTemplate = dict()
-        self.formatTemplate()
+        self.formattedTemplate = self.formatTemplate()
         self.uploadTemplate(self.name, self.formattedTemplate)
 
     def getMaxKeys(self, lst):
@@ -87,8 +86,7 @@ class Template():
 
     def formatTemplate(self):
         if isinstance(self.template, (list, tuple, set)):
-            self.log.info('Generating template automatically')
-            self.formattedTemplate = {
+            formattedTemplate = {
                 "name": self.name,
                 "order": self.order,
                 "body": {
@@ -128,6 +126,8 @@ class Template():
                     }
                 }
             }
+            return formattedTemplate
+        return self.template
 
     def uploadTemplate(self, name, template):
         if template:

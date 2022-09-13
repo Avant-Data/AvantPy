@@ -1,29 +1,38 @@
 # -*- coding: utf-8 -*-
 from urllib3.exceptions import InsecureRequestWarning
+from collections import Counter
 import concurrent.futures
 import logging
 import requests
 import json
+import typing
 
 
 class UpsertBulk():
 
-    def __init__(self, lst, **kwargs):
+    def __init__(self, lst: typing.Union[list, tuple, set],
+                 baseurl: typing.Optional[str] = 'https://127.0.0.1',
+                 api: typing.Optional[str] = '/avantapi/avantData/index/bulk/general/upsert',
+                 cluster: typing.Optional[str] = 'AvantData',
+                 verifySSL: typing.Optional[bool] = False,
+                 chunkSize: typing.Optional[int] = 1000,
+                 threads: typing.Optional[int] = 1,
+                 **kwargs):
         self.log = logging.getLogger(__name__)
-        self.baseurl = kwargs.get('baseurl', 'https://127.0.0.1')
-        self.api = kwargs.get(
-            'api', '/avantapi/avantData/index/bulk/general/upsert')
+        self.baseurl = baseurl
+        self.api = api
+        self.cluster = cluster
+        self.verifySSL = verifySSL
+        self.chunkSize = chunkSize
+        self.threads = threads
         self.url = kwargs.get('url', self.baseurl+self.api)
-        self.cluster = kwargs.get('cluster', 'AvantData')
-        self.verifySSL = kwargs.get('verifySSL', False)
-        self.chunkSize = kwargs.get('chunkSize', 1000)
-        self.threads = kwargs.get('threads', 10)
-        self.indexed = 0
+        self.updated, self.created, self.failed = (0, 0, 0)
+        self.errors = Counter()
         requests.packages.urllib3.disable_warnings(
             category=InsecureRequestWarning)
         self.sendToIndex(lst)
 
-    def uploadToIndex(self, chunk):
+    def uploadToIndex(self, chunk: typing.Union[list, tuple, set]):
         jsonToSend = {'body': json.loads(json.dumps(chunk))}
         headers = {'cluster': self.cluster}
         responseBulk = requests.put(url=self.url,
@@ -33,32 +42,36 @@ class UpsertBulk():
         try:
             responseJson = json.loads(responseBulk.text)
             if responseJson.get('items'):
-                successful, failed = (0, 0)
-                for item in responseJson.get('items'):
-                    try:
-                        successful += item.get('update').get(
-                            '_shards').get('successful')
-                        failed += item.get('update').get('_shards').get('failed')
-                    except:
-                        failed += 1
-                        self.log.warning(item.get('update').get('error'))
-                if successful + failed > 0:
-                    self.log.info('Successful: {}, Failed: {}'.format(self.indexed, failed))
-                    self.indexed += successful
+                results = Counter(item.get('update').get('result')
+                                  for item in responseJson.get('items'))
+                self.updated += results.get('updated', 0)
+                self.created += results.get('created', 0)
+                if responseJson.get('errors'):
+                    self.errors.update(Counter(item.get('update').get('error').get(
+                        'reason') for item in responseJson.get('items') if item.get('update').get('error')))
+                self.log.info('Updated: {}, Created {}. '.format(
+                    self.updated, self.created))
         except Exception as e:
             self.log.debug(responseBulk.text)
-            self.log.debug(e)
+            self.log.warning(e)
 
-    def sendToIndex(self, listToIndex):
+    def sendToIndex(self, listToIndex: typing.Union[list, tuple, set]):
         if listToIndex:
             self.log.info('Total: {}'.format(len(listToIndex)))
             chunks = [listToIndex]
-            if len(listToIndex) > self.chunkSize:
-                chunks = [listToIndex[x:x+self.chunkSize]
-                          for x in range(0, len(listToIndex), self.chunkSize)]
-            with concurrent.futures.ThreadPoolExecutor(max_workers=self.threads) as executor:
-                executor.map(self.uploadToIndex, chunks)
-            self.log.info('{} successfully indexed'.format(self.indexed))
-            self.indexed = 0
+            if self.threads > 1:
+                if len(listToIndex) > self.chunkSize:
+                    chunks = [listToIndex[x:x+self.chunkSize]
+                              for x in range(0, len(listToIndex), self.chunkSize)]
+                with concurrent.futures.ThreadPoolExecutor(max_workers=self.threads) as executor:
+                    executor.map(self.uploadToIndex, chunks)
+            else:
+                self.uploadToIndex(listToIndex)
+            if self.errors:
+                self.failed += sum(self.errors.values())
+                for k, v in self.errors.items():
+                    self.log.warning('{} failed. Reason: {}'.format(v, k))
+            self.log.info('{} successfully executed with {} failures'.format(
+                self.updated+self.created, self.failed))
         else:
             self.log.info('Empty list')

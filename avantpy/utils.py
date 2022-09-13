@@ -33,9 +33,9 @@ def edit(data, **kwargs):
             for item in toReplace:
                 if callable(item):
                     value = item(value)
-                elif type(item) is dict and item:
-                    value = regexReplace(value, toReplace)
-        elif type(toReplace) is dict and toReplace:
+                elif type(item) is dict and item and value:
+                    value = regexReplace(value, item)
+        elif type(toReplace) is dict and toReplace and value:
             value = regexReplace(value, toReplace)
         return value
     threads = kwargs.pop('threads', None)
