@@ -1,35 +1,57 @@
 # -*- coding: utf-8 -*-
+import typing
 
 
-def generateID(data, **kwargs) -> str:
+def generateID(data: typing.Any) -> str:
     """Generates a 32 character hexadecimal hash
 
     This function generates an md5 hash, ideal to be used as an id when indexing a document to avoid document duplication
 
     Args:
         data: Input to generate the md5 hash
-        dumps: (bool, optional): Force `data` to be a string
 
     Returns:
         The generated md5 hash
     """
     import hashlib
-    if kwargs.get('dumps') or not isinstance(data, str):
+    if type(data) is not str:
         import json
         data = json.dumps(data)
     return hashlib.md5(data.encode('utf-8')).hexdigest()
 
 
-def edit(data, **kwargs):
+def edit(data: typing.List[typing.Dict[typing.Union[str, int, float, bool], typing.Any]],
+         keys: typing.Union[typing.Callable, dict, list, tuple, set] = None,
+         values: typing.Union[typing.Callable, dict, list, tuple, set] = None,
+         items: typing.Dict[typing.Union[str, int, float,
+                                         bool], typing.Union[str, typing.Callable]] = {},
+         threads: int = None
+         ) -> typing.List[typing.Dict[typing.Union[str, int, float, bool], typing.Any]]:
+    """Edit a list of dictionaries applying functions or regex in keys and values
+
+    This function executes another function or regex on each matching key, value or key values in a list of dictionaries
+
+    Args:
+        data: List of dictionaries to edit
+        keys: Functions or dictionaries with format {pattern, replace} to be applied to keys
+        values: Functions or dictionaries with format {pattern, replace} to be applied to values
+        items: Dictionary with format {key, function or {pattern, replace}} to be applied to values with corresponding keys
+        threads: Number of threads to execute list editing
+
+    Returns:
+        The edited list
+    """
     import re
+
     def regexReplace(value, toReplace):
-        for k,v in toReplace.items():
+        for k, v in toReplace.items():
             value = re.sub(k, v, value)
         return value
+
     def replaceMap(value, toReplace):
         if callable(toReplace):
             toReplace = [toReplace]
-        if isinstance(toReplace, (tuple,list,set)):
+        if isinstance(toReplace, (tuple, list, set)):
             for item in toReplace:
                 if callable(item):
                     value = item(value)
@@ -38,35 +60,32 @@ def edit(data, **kwargs):
         elif type(toReplace) is dict and toReplace and value:
             value = regexReplace(value, toReplace)
         return value
-    threads = kwargs.pop('threads', None)
-    keysReplace = kwargs.get('keys')
-    valuesReplace = kwargs.get('values')
-    entireReplace = kwargs.get('entire', {})
+
     if threads:
-        return threadList(edit, data, **kwargs, workers=threads)
+        return threadList(edit, data, keys, values, items, workers=threads)
     if type(data) is dict:
         tDict = dict()
-        for key,value in data.items():
-            if keysReplace:
-                key = replaceMap(key, keysReplace)
-            if isinstance(value, (tuple,list,set,dict)):
-                tDict[key] = edit(value, **kwargs)
+        for key, value in data.items():
+            if keys:
+                key = replaceMap(key, keys)
+            if isinstance(value, (tuple, list, set, dict)):
+                tDict[key] = edit(value, keys, values, items)
             else:
-                if valuesReplace:
-                    value = replaceMap(value, valuesReplace)
-                if key in entireReplace.keys():
-                    value = replaceMap(value, entireReplace[key])
+                if values:
+                    value = replaceMap(value, values)
+                if key in items.keys():
+                    value = replaceMap(value, items[key])
                 if value is not None:
                     tDict[key] = value
         return tDict
-    elif isinstance(data, (tuple,list,set)):
+    elif isinstance(data, (tuple, list, set)):
         tList = list()
         for item in data:
-            if isinstance(item, (tuple,list,set,dict)):
-                tList.append(edit(item, **kwargs))
+            if isinstance(item, (tuple, list, set, dict)):
+                tList.append(edit(item, keys, values, items))
             else:
-                if valuesReplace:
-                    item = replaceMap(item, valuesReplace)
+                if values:
+                    item = replaceMap(item, values)
                 if item is not None:
                     tList.append(item)
         if type(data) is tuple:
@@ -83,13 +102,15 @@ def threadList(method, lst, **kwargs):
     lists = unflatten(lst, kwargs.pop('chunks', workers))
     completeList = list()
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-        for result in executor.map(partial(method,**kwargs), lists):
+        for result in executor.map(partial(method, **kwargs), lists):
             completeList.extend(result)
         return completeList
 
-def humanSize(bytes, units=[' bytes','KB','MB','GB','TB', 'PB', 'EB']):
+
+def humanSize(bytes, units=[' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']):
     """ Returns a human readable string representation of bytes """
-    return str(bytes) + units[0] if bytes < 1024 else humanSize(bytes>>10, units[1:])
+    return str(bytes) + units[0] if bytes < 1024 else humanSize(bytes >> 10, units[1:])
+
 
 def camelCase(s):
     import re
@@ -97,6 +118,7 @@ def camelCase(s):
         s = re.sub(r'(_|-)+', ' ', str(s)).title().replace(' ', '')
         return ''.join([s[0].lower(), s[1:]])
     return s
+
 
 def removeEmpty(s):
     """Return None if a value is empty
@@ -131,15 +153,15 @@ def flatten(lists: list) -> list:
 
 
 def unflatten(lst: list, chunks: int) -> list:
-    pace = max(1,len(lst)//chunks)
+    pace = max(1, len(lst)//chunks)
     return [lst[i:i+pace] for i in range(0, len(lst), pace)]
 
 
-def getObj(dic, *args):    
-        for obj in args:
-            if obj:
-                dic = dic.get(obj)
-        return dic
+def getObj(dic, *args):
+    for obj in args:
+        if obj:
+            dic = dic.get(obj)
+    return dic
 
 
 def strToType(s):
@@ -171,6 +193,6 @@ def add(lst, **kwargs) -> list:
             else:
                 value = argument
             newDict[kwarg] = value
-        newDict.update({k:v for k,v in l.items()})
+        newDict.update({k: v for k, v in l.items()})
         newLst.append(newDict)
     return newLst
