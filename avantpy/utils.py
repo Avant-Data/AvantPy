@@ -19,9 +19,10 @@ def generateID(data: Any) -> str:
 
 
 def edit(data: Union[List[dict], Tuple[dict], Set[dict]],
-         keys: Optional[Union[Callable, dict, list, tuple, set]] = None,
-         values: Optional[Union[Callable, dict, list, tuple, set]] = None,
-         items: Optional[Dict[Union[str, int, float, bool], Union[str, Callable]]] = {},
+         keys: Optional[Union[dict, list, tuple, set, Callable]] = None,
+         values: Optional[Union[dict, list, tuple, set, Callable]] = None,
+         items: Optional[Dict[Union[str, int, float, bool],
+                              Union[str, Callable]]] = {},
          threads: Optional[int] = None
          ) -> Union[List[dict], Tuple[dict], Set[dict]]:
     """Edit a list of dictionaries applying functions or regex in keys and values
@@ -113,12 +114,28 @@ def threadList(method: Callable, data: list, **kwargs):
         return completeList
 
 
-def humanSize(bytes, units=[' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']):
-    """ Returns a human readable string representation of bytes """
+def humanSize(bytes: int, units: Optional[list] = [' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']) -> str:
+    """Returns a human readable string representation of bytes
+
+    Args:
+        bytes: Number of bytes to convert to human readable
+        units: Suffix list
+
+    Returns:
+        The string in plain read format
+    """
     return str(bytes) + units[0] if bytes < 1024 else humanSize(bytes >> 10, units[1:])
 
 
-def camelCase(s):
+def camelCase(s: str) -> str:
+    """Puts the string in camelCase format
+
+    Args:
+        s: String to be changed
+
+    Returns:
+        The string formatted as camelCase
+    """
     import re
     if s:
         s = re.sub(r'(_|-)+', ' ', str(s)).title().replace(' ', '')
@@ -126,16 +143,14 @@ def camelCase(s):
     return s
 
 
-def removeEmpty(s):
-    """Return None if a value is empty
-
-    Replace empty values with None
+def removeEmpty(s: str) -> str:
+    """Replace empty values with None
 
     Args:
-        s (str): String to be checked
+        s: String to be checked
 
     Returns:
-        The returned `s` with empty values replace by None
+        The string with empty values replace by None
     """
     if type(s) is bool:
         return s
@@ -144,13 +159,11 @@ def removeEmpty(s):
     return None
 
 
-def flatten(lists: list) -> list:
-    """Flatten all elements in a list
-
-    Flatten all lists within a list to prepare it for indexing
+def flatten(lists: List[list]) -> list:
+    """Flatten all list elements in a list
 
     Args:
-        lists: (:obj:`list` of :obj:`list`): Lists to be flattened 
+        lists: Lists to be flattened 
 
     Returns:
         The flattened list
@@ -158,19 +171,53 @@ def flatten(lists: list) -> list:
     return [l for ls in lists for l in ls]
 
 
-def unflatten(lst: list, chunks: int) -> list:
+def unflatten(lst: list, chunks: Optional[int] = 1) -> list:
+    """Unlatten all list elements in a list
+
+    Args:
+        lst: List to be unflattened
+        chunks: Number of lists to be inside the list 
+
+    Returns:
+        The unflattened list
+    """
+    unflattened = []
     pace = max(1, len(lst)//chunks)
-    return [lst[i:i+pace] for i in range(0, len(lst), pace)]
+    surplus = 0
+    for i in range(0, len(lst), pace):
+        if i+pace+len(lst) % chunks == len(lst):
+            surplus = len(lst) % chunks
+        unflattened.append(lst[i:i+pace+surplus])
+        if surplus > 0:
+            break
+    return unflattened
 
 
-def getData(dic, *args):
+def getData(dic: dict, *args: Optional[Union[str, int, float, bool]]) -> dict:
+    """A way to extract only necessary data inside a dictionary
+
+    Args:
+        dic: dictionary to have the data extracted
+        args: keys inside the dictionary
+
+    Returns:
+        Another dictionary with passed keys
+    """
     for data in args:
         if data:
             dic = dic.get(data)
     return dic
 
 
-def strToType(s):
+def strToType(s: str) -> type:
+    """Deduces the data type of a string
+
+    Args:
+        s: string to be deducted
+
+    Returns:
+        Estimated string type
+    """
     from ast import literal_eval
     try:
         return type(literal_eval(s))
@@ -179,13 +226,30 @@ def strToType(s):
 
 
 def dateToEpochMillis(s: str) -> int:
+    """Parses the date and transforms it into epoch millis format
+
+    Args:
+        s: string containing the date to be parsed
+
+    Returns:
+        Data integer in epoch millis format
+    """
     if type(s) is str:
         import dateparser
         return int(dateparser.parse(s).strftime('%s'))*1000
     return s
 
 
-def add(lst, **kwargs) -> list:
+def add(lst: List[dict], **kwargs: Any) -> list:
+    """Add keys and values to each dictionary of a list
+
+    Args:
+        lst: list containing dictionaries
+        kwargs: keys and values to be added. The values can also be a function to be applied to each dictionary
+
+    Returns:
+        The list with added keys and values
+    """
     threads = kwargs.pop('threads', None)
     if threads:
         return threadList(add, lst, **kwargs, workers=threads)
