@@ -27,17 +27,13 @@ def edit(
                                                              Callable]]] = {},
     threads: Optional[int] = None
 ) -> Union[List[dict], Tuple[dict], Set[dict]]:
-    """Edit a list of dictionaries applying functions or regex
-    in keys and values
+    """Edit a list of dictionaries applying functions or regex in keys and values
 
     Args:
         data: List of dictionaries to edit
-        keys: Functions or dictionaries with format {pattern, replace}
-        to be applied to keys
-        values: Functions or dictionaries with format {pattern, replace}
-        to be applied to values
-        items: Dictionary with format {key, function or {pattern, replace}}
-        to be applied to values with corresponding keys
+        keys: Functions or dictionaries with format {pattern, replace} to be applied to keys
+        values: Functions or dictionaries with format {pattern, replace} to be applied to values
+        items: Dictionary with format {key, function or {pattern, replace}} to be applied to values with corresponding keys
         threads: Number of threads to execute list editing
 
     Returns:
@@ -256,8 +252,7 @@ def add(lst: List[dict], **kwargs: Any) -> list:
 
     Args:
         lst: list containing dictionaries
-        kwargs: keys and values to be added. The values can
-        also be a function to be applied to each dictionary
+        kwargs: keys and values to be added. The values can also be a function to be applied to each dictionary
 
     Returns:
         The list with added keys and values
