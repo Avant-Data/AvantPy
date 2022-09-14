@@ -3,7 +3,8 @@ from typing import Callable, Set, Tuple, Union, Optional, List, Dict, Any
 
 
 def generateID(data: Any) -> str:
-    """Generates a 32 character hexadecimal hash, ideal to be used as an id when indexing a document to avoid document duplication
+    """Generates a 32 character hexadecimal hash, ideal to beused as an id
+    when indexing a document to avoid document duplication
 
     Args:
         data: Input to generate the md5 hash
@@ -18,20 +19,25 @@ def generateID(data: Any) -> str:
     return hashlib.md5(data.encode('utf-8')).hexdigest()
 
 
-def edit(data: Union[List[dict], Tuple[dict], Set[dict]],
-         keys: Optional[Union[dict, list, tuple, set, Callable]] = None,
-         values: Optional[Union[dict, list, tuple, set, Callable]] = None,
-         items: Optional[Dict[Union[str, int, float, bool],
-                              Union[str, Callable]]] = {},
-         threads: Optional[int] = None
-         ) -> Union[List[dict], Tuple[dict], Set[dict]]:
-    """Edit a list of dictionaries applying functions or regex in keys and values
+def edit(
+    data: Union[List[dict], Tuple[dict], Set[dict]],
+    keys: Optional[Union[dict, list, tuple, set, Callable]] = None,
+    values: Optional[Union[dict, list, tuple, set, Callable]] = None,
+    items: Optional[Dict[Union[str, int, float, bool], Union[str,
+                                                             Callable]]] = {},
+    threads: Optional[int] = None
+) -> Union[List[dict], Tuple[dict], Set[dict]]:
+    """Edit a list of dictionaries applying functions or regex
+    in keys and values
 
     Args:
         data: List of dictionaries to edit
-        keys: Functions or dictionaries with format {pattern, replace} to be applied to keys
-        values: Functions or dictionaries with format {pattern, replace} to be applied to values
-        items: Dictionary with format {key, function or {pattern, replace}} to be applied to values with corresponding keys
+        keys: Functions or dictionaries with format {pattern, replace}
+        to be applied to keys
+        values: Functions or dictionaries with format {pattern, replace}
+        to be applied to values
+        items: Dictionary with format {key, function or {pattern, replace}}
+        to be applied to values with corresponding keys
         threads: Number of threads to execute list editing
 
     Returns:
@@ -108,13 +114,17 @@ def threadList(method: Callable, data: list, **kwargs):
     workers = kwargs.pop('workers', 1)
     lists = unflatten(data, kwargs.pop('chunks', workers))
     completeList = list()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+    with concurrent.futures.ThreadPoolExecutor(
+            max_workers=workers) as executor:
         for result in executor.map(partial(method, **kwargs), lists):
             completeList.extend(result)
         return completeList
 
 
-def humanSize(bytes: int, units: Optional[list] = [' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']) -> str:
+def humanSize(
+    bytes: int,
+    units: Optional[list] = [' bytes', 'KB', 'MB', 'GB', 'TB', 'PB',
+                             'EB']) -> str:
     """Returns a human readable string representation of bytes
 
     Args:
@@ -124,7 +134,8 @@ def humanSize(bytes: int, units: Optional[list] = [' bytes', 'KB', 'MB', 'GB', '
     Returns:
         The string in plain read format
     """
-    return str(bytes) + units[0] if bytes < 1024 else humanSize(bytes >> 10, units[1:])
+    return str(bytes) + units[0] if bytes < 1024 else humanSize(
+        bytes >> 10, units[1:])
 
 
 def camelCase(s: str) -> str:
@@ -182,12 +193,12 @@ def unflatten(lst: list, chunks: Optional[int] = 1) -> list:
         The unflattened list
     """
     unflattened = []
-    pace = max(1, len(lst)//chunks)
+    pace = max(1, len(lst) // chunks)
     surplus = 0
     for i in range(0, len(lst), pace):
-        if i+pace+len(lst) % chunks == len(lst):
+        if i + pace + len(lst) % chunks == len(lst):
             surplus = len(lst) % chunks
-        unflattened.append(lst[i:i+pace+surplus])
+        unflattened.append(lst[i:i + pace + surplus])
         if surplus > 0:
             break
     return unflattened
@@ -236,7 +247,7 @@ def dateToEpochMillis(s: str) -> int:
     """
     if type(s) is str:
         import dateparser
-        return int(dateparser.parse(s).strftime('%s'))*1000
+        return int(dateparser.parse(s).strftime('%s')) * 1000
     return s
 
 
@@ -245,7 +256,8 @@ def add(lst: List[dict], **kwargs: Any) -> list:
 
     Args:
         lst: list containing dictionaries
-        kwargs: keys and values to be added. The values can also be a function to be applied to each dictionary
+        kwargs: keys and values to be added. The values can
+        also be a function to be applied to each dictionary
 
     Returns:
         The list with added keys and values
