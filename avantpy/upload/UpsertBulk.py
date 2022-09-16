@@ -15,22 +15,21 @@ class UpsertBulk:
 
     Args:
         data (list(dict)): List of dictionaries to be indexed [{"id":..., "index":..., "type":..., ...},...]
-        baseurl (str, optional): baseurl to execute the upsert bulk 
-        api (str, optional): endpoint where the connection with database is set
-        cluster (str, optional): header parameter for communication with the api
+        baseurl (str, optional): Baseurl to execute the upsert bulk 
+        api (str, optional): Endpoint where the connection with database is set
+        cluster (str, optional): Header parameter for communication with the api
         verifySSL (bool, optional): bool to verify SSL of requests
         chunkSize (int, optional): Number of documents to send in each bulk requests
         threads (int, optional): Number of threads to send each chunk of documents
         url (str, optional): Default to join the url path with api path
-    Returns:
-        The generated md5 hash
+
     Attributes:
+        data (list(dict)): List of dictionaries to be indexed [{"id":..., "index":..., "type":..., ...},...]
         updated (int): Number of documents successfully updated
         created (int): Number of documents successfully created
         failed (int): Number of documents that failed indexing
         errors (dict): Dict subclass for counting hashable objects from collections (Counter)
-        log (logger): Logger with __name__ of module 'logging'
-        data (list(dict)): List of dictionaries to be indexed [{"id":..., "index":..., "type":..., ...},...]
+        log (logger): Logger with __name__
         baseurl (str): baseurl to execute the upsert bulk 
         api (str): endpoint where the connection with database is set
         cluster (str): header parameter for communication with the api
@@ -38,9 +37,24 @@ class UpsertBulk:
         chunkSize (int): Number of documents to send in each bulk requests
         threads (int): Number of threads to send each chunk of documents
         url (str): Default to join the url path with api path
+
+    Examples:
+        >>> import avantpy
+        >>> import logging
+        >>> logging.basicConfig(level=logging.INFO)
+        >>> dataList = []
+        >>> dataList.append({'id':'6fee099da7dfbb67599d7fa7389de898', 'type':'test', 'index':'test', 'testKey': 'firstValue'})
+        >>> dataList.append({'id':'58f77dcc14a41b2984e298e86db85c73', 'type':'test', 'index':'test', 'testKey': 'secondValue'})
+        >>> dataList.append({'id':'ed23fa12819a63198b5c0b171ebbbf2d', 'type':'test', 'index':'test', 'testKey': 'thirdValue'})
+        >>> avantpy.upload.UpsertBulk(dataList, baseurl='https://192.168.102.133/')
+        INFO:avantpy.upload.UpsertBulk:Total: 3
+        INFO:avantpy.upload.UpsertBulk:Updated: 0, Created 3. 
+        INFO:avantpy.upload.UpsertBulk:3 successfully executed with 0 failures
+        <Created: 3 / Updated: 0 / Failed: 0>
     """
 
-    def __init__(self, data: Union[List[dict], Tuple[dict], Set[dict]],
+    def __init__(self,
+                 data: Union[List[dict], Tuple[dict], Set[dict]],
                  baseurl: Optional[str] = 'https://127.0.0.1',
                  api: Optional[str] = '/avantapi/avantData/index/bulk/general/upsert',
                  cluster: Optional[str] = 'AvantData',
@@ -60,9 +74,17 @@ class UpsertBulk:
         self.errors = Counter()
         requests.packages.urllib3.disable_warnings(
             category=InsecureRequestWarning)
-        self.sendToIndex(data)
+        self.bulkSend(data)
 
-    def uploadToIndex(self, chunk: Union[list, tuple, set]):
+    def __repr__(self):
+        return '<Created: {} / Updated: {} / Failed: {}>'.format(self.created, self.updated, self.failed)
+
+    def chunkSend(self, chunk: Union[List[dict], Tuple[dict], Set[dict]]):
+        """Sends parts of the dictionary list to be indexed
+
+        Args:
+            chunk (list(dict)): A chunk with chunkSize argument size
+        """
         jsonToSend = {'body': json.loads(json.dumps(chunk))}
         headers = {'cluster': self.cluster}
         responseBulk = requests.put(url=self.url,
@@ -85,19 +107,24 @@ class UpsertBulk:
             self.log.debug(responseBulk.text)
             self.log.warning(e)
 
-    def sendToIndex(self, listToIndex: Union[list, tuple, set]):
+    def bulkSend(self, listToIndex: Union[List[dict], Tuple[dict], Set[dict]]):
+        """Prepare the list of dictionaries in chunks and manage thread pool if threads are greater than 1
+
+        Args:
+            listToIndex (list(dict)): List of dictionaries to be indexed
+        """
         if listToIndex:
             self.log.info('Total: {}'.format(len(listToIndex)))
             chunks = [listToIndex]
             if len(listToIndex) > self.chunkSize:
                 chunks = [listToIndex[x:x+self.chunkSize]
-                            for x in range(0, len(listToIndex), self.chunkSize)]
+                          for x in range(0, len(listToIndex), self.chunkSize)]
             if self.threads > 1:
                 with concurrent.futures.ThreadPoolExecutor(max_workers=self.threads) as executor:
-                    executor.map(self.uploadToIndex, chunks)
+                    executor.map(self.chunkSend, chunks)
             else:
                 for chunk in chunks:
-                    self.uploadToIndex(chunk)
+                    self.chunkSend(chunk)
             if self.errors:
                 self.failed += sum(self.errors.values())
                 for k, v in self.errors.items():

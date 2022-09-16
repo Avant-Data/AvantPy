@@ -34,7 +34,7 @@ ianaList = avantpy.utils.add(ianaList,
                              )
 avantpy.upload.UpsertBulk(ianaList,
                           baseurl='https://192.168.102.133/',
-                          threads=10
+                          threads=1
                           )
 for i in range(5):
     print(ianaList[i])
