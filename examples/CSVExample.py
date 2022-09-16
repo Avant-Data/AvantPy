@@ -21,21 +21,21 @@ ianaList = avantpy.utils.edit(ianaList,
                                   }]
                               # threads=100
                               )
-""" avantpy.upload.Template(name='iana_teste',
+avantpy.upload.Template(name='iana_teste',
                         template=ianaList,
                         aliases='IANA',
                         baseurl='https://192.168.102.133/',
-                       ) """
+                       )
 ianaList = avantpy.utils.add(ianaList,
                              type='iana_teste',
                              index='iana_teste',
                              id=avantpy.utils.generateID,
                              # threads=10
                              )
-""" avantpy.upload.UpsertBulk(ianaList,
+avantpy.upload.UpsertBulk(ianaList,
                           baseurl='https://192.168.102.133/',
                           threads=10
-                          ) """
+                          )
 for i in range(5):
     print(ianaList[i])
 

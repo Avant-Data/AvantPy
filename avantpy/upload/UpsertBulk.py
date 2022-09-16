@@ -5,19 +5,49 @@ import concurrent.futures
 import logging
 import requests
 import json
-import typing
+from typing import Optional, Union, List, Tuple, Set, Any
 
 
-class UpsertBulk():
+class UpsertBulk:
+    """Bulk Uploader
 
-    def __init__(self, data: typing.Union[list, tuple, set],
-                 baseurl: typing.Optional[str] = 'https://127.0.0.1',
-                 api: typing.Optional[str] = '/avantapi/avantData/index/bulk/general/upsert',
-                 cluster: typing.Optional[str] = 'AvantData',
-                 verifySSL: typing.Optional[bool] = False,
-                 chunkSize: typing.Optional[int] = 1000,
-                 threads: typing.Optional[int] = 1,
-                 **kwargs):
+    A class to manage bulk uploads of data
+
+    Args:
+        data (list(dict)): List of dictionaries to be indexed [{"id":..., "index":..., "type":..., ...},...]
+        baseurl (str, optional): baseurl to execute the upsert bulk 
+        api (str, optional): endpoint where the connection with database is set
+        cluster (str, optional): header parameter for communication with the api
+        verifySSL (bool, optional): bool to verify SSL of requests
+        chunkSize (int, optional): Number of documents to send in each bulk requests
+        threads (int, optional): Number of threads to send each chunk of documents
+        url (str, optional): Default to join the url path with api path
+    Returns:
+        The generated md5 hash
+    Attributes:
+        updated (int): Number of documents successfully updated
+        created (int): Number of documents successfully created
+        failed (int): Number of documents that failed indexing
+        errors (dict): Dict subclass for counting hashable objects from collections (Counter)
+        log (logger): Logger with __name__ of module 'logging'
+        data (list(dict)): List of dictionaries to be indexed [{"id":..., "index":..., "type":..., ...},...]
+        baseurl (str): baseurl to execute the upsert bulk 
+        api (str): endpoint where the connection with database is set
+        cluster (str): header parameter for communication with the api
+        verifySSL (bool): bool to verify SSL of requests
+        chunkSize (int): Number of documents to send in each bulk requests
+        threads (int): Number of threads to send each chunk of documents
+        url (str): Default to join the url path with api path
+    """
+
+    def __init__(self, data: Union[List[dict], Tuple[dict], Set[dict]],
+                 baseurl: Optional[str] = 'https://127.0.0.1',
+                 api: Optional[str] = '/avantapi/avantData/index/bulk/general/upsert',
+                 cluster: Optional[str] = 'AvantData',
+                 verifySSL: Optional[bool] = False,
+                 chunkSize: Optional[int] = 1000,
+                 threads: Optional[int] = 1,
+                 **kwargs: Any):
         self.log = logging.getLogger(__name__)
         self.baseurl = baseurl
         self.api = api
@@ -32,7 +62,7 @@ class UpsertBulk():
             category=InsecureRequestWarning)
         self.sendToIndex(data)
 
-    def uploadToIndex(self, chunk: typing.Union[list, tuple, set]):
+    def uploadToIndex(self, chunk: Union[list, tuple, set]):
         jsonToSend = {'body': json.loads(json.dumps(chunk))}
         headers = {'cluster': self.cluster}
         responseBulk = requests.put(url=self.url,
@@ -55,18 +85,19 @@ class UpsertBulk():
             self.log.debug(responseBulk.text)
             self.log.warning(e)
 
-    def sendToIndex(self, listToIndex: typing.Union[list, tuple, set]):
+    def sendToIndex(self, listToIndex: Union[list, tuple, set]):
         if listToIndex:
             self.log.info('Total: {}'.format(len(listToIndex)))
             chunks = [listToIndex]
+            if len(listToIndex) > self.chunkSize:
+                chunks = [listToIndex[x:x+self.chunkSize]
+                            for x in range(0, len(listToIndex), self.chunkSize)]
             if self.threads > 1:
-                if len(listToIndex) > self.chunkSize:
-                    chunks = [listToIndex[x:x+self.chunkSize]
-                              for x in range(0, len(listToIndex), self.chunkSize)]
                 with concurrent.futures.ThreadPoolExecutor(max_workers=self.threads) as executor:
                     executor.map(self.uploadToIndex, chunks)
             else:
-                self.uploadToIndex(listToIndex)
+                for chunk in chunks:
+                    self.uploadToIndex(chunk)
             if self.errors:
                 self.failed += sum(self.errors.values())
                 for k, v in self.errors.items():
