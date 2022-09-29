@@ -6,25 +6,104 @@ import requests
 import logging
 import json
 from ..utils import *
+from typing import Optional, Union, List, Tuple, Set, Any
 
 
 class Search():
+    """Search
 
-    def __init__(self, url, **kwargs):
+    A class to manage downloads from avantdata
+
+    Args:
+        url (str): AvantData URL
+        index (str, optional): Index where the documents are
+        must (str, optional): Must query_string from elasticsearch
+        mustNot (str, optional): = Must_not query_string from elasticsearch
+        filter (str, optional): Filter range query from elasticsearch
+        sort (str, optional): Attribute to sort the search
+        apiCustom (str, optional): Endpoint where the connection with custom search is set
+        apiScroll (str, optional): Endpoint where the connection with scroll search is set
+        cluster (str, optional): Header parameter for communication with the api
+        verifySSL (bool, optional): Bool to verify SSL of requests
+        size (int, optional): Number of documents to be searched (max 5000)
+        maxSize (int, optional): Number of documents to start scroll search
+        seedTime (str, optional): Period to retain the search context for scrolling,
+        format (bool, optional): Format data to be in a list of dictionaries where each dictionary is a document
+
+    Attributes:
+        data (list(dict)): Downloaded documents as a list of dictionaries
+        url (str): AvantData URL
+        index (str): Index where the documents are
+        must (str): Must query_string from elasticsearch
+        mustNot (str): = Must_not query_string from elasticsearch
+        filter (str): Filter range query from elasticsearch
+        sort (str): Attribute to sort the search
+        log (logger): Logger with __name__
+        apiCustom (str): Endpoint where the connection with custom search is set
+        apiScroll (str): Endpoint where the connection with scroll search is set
+        cluster (str): Header parameter for communication with the api
+        verifySSL (bool): Bool to verify SSL of requests
+        size (int): Number of documents to be searched (max 5000)
+        maxSize (int): Number of documents to start scroll search
+        seedTime (str): Period to retain the search context for scrolling,
+        format (bool): Format data to be in a list of dictionaries where each dictionary is a document
+        took (int): Time elasticsearch took to process the query on its side
+
+    Examples:
+        >>> import logging
+        >>> logging.basicConfig(level=logging.INFO)
+        >>> import avantpy
+        >>> s = avantpy.download.Search('https://prod.avantdata.com.br', index='avantscan_results', format=True)
+        INFO:avantpy.download.Search:Searching avantscan_results in https://prod.avantdata.com.br
+        INFO:avantpy.download.Search:Total of 44639 documents found
+        INFO:avantpy.download.Search:Over 5000 found. Starting scroll search
+        INFO:avantpy.download.Search:5000/44639 downloaded documents
+        INFO:avantpy.download.Search:10000/44639 downloaded documents
+        INFO:avantpy.download.Search:15000/44639 downloaded documents
+        INFO:avantpy.download.Search:20000/44639 downloaded documents
+        INFO:avantpy.download.Search:25000/44639 downloaded documents
+        INFO:avantpy.download.Search:30000/44639 downloaded documents
+        INFO:avantpy.download.Search:35000/44639 downloaded documents
+        INFO:avantpy.download.Search:40000/44639 downloaded documents
+        INFO:avantpy.download.Search:44639 downloaded documents
+        >>> len(s.data)
+        44639
+        >>> [type(d) for d in s.data[:5]]
+        [<class 'dict'>, <class 'dict'>, <class 'dict'>, <class 'dict'>, <class 'dict'>]
+    """
+
+    def __init__(self,
+                 url: str,
+                 index: Optional[str] = '*',
+                 must: Optional[str] = 'GenerateTime:*',
+                 mustNot: Optional[str] = 'GenerateTime:0',
+                 filter: Optional[dict] = {'GenerateTime': {'lte': 'now'}},
+                 sort: Optional[str] = 'GenerateTime',
+                 apiCustom: Optional[str] = '/avantapi/avantData/search/customSearch',
+                 apiScroll: Optional[str] = '/avantapi/avantData/search/scrollSearch',
+                 cluster: Optional[str] = 'AvantData',
+                 verifySSL: Optional[bool] = False,
+                 size: Optional[int] = 5000,
+                 maxSize: Optional[int] = 5000,
+                 seedTime: Optional[str] = '8m',
+                 format: Optional[bool] = False,
+                  **kwargs: Any):
         self.log = logging.getLogger(__name__)
         self.url = url
-        self.index = kwargs.get('index', '*')
-        self.apiCustom = kwargs.get(
-            'apiCustom', '/avantapi/avantData/search/customSearch')
-        self.apiScroll = kwargs.get(
-            'apiScroll', '/avantapi/avantData/search/scrollSearch')
-        self.cluster = kwargs.get('cluster', 'AvantData')
-        self.verifySSL = kwargs.get('veryfiSSL', False)
-        self.size = kwargs.get('size', 5000)
-        self.maxSize = kwargs.get('maxSize', 5000)
-        self.seedTime = kwargs.get('seedTime', '8m')
-        self.format = kwargs.get('format', False)
-        self.query = self.makeQuery(**kwargs)
+        self.index = index
+        self.must = must
+        self.mustNot = mustNot
+        self.filter = filter
+        self.sort = sort
+        self.apiCustom = apiCustom
+        self.apiScroll = apiScroll
+        self.cluster = cluster
+        self.verifySSL = verifySSL
+        self.size = size
+        self.maxSize = maxSize
+        self.seedTime = seedTime
+        self.format = format
+        self.query = kwargs.get('query', self.makeQuery())
         self.data = []
         self.took = 0
         requests.packages.urllib3.disable_warnings(
@@ -34,7 +113,8 @@ class Search():
         if self.format:
             self.data = self.formatData()
 
-    def makeQuery(self, **kwargs):
+    def makeQuery(self):
+        """Return the GET /_search object to search in elasticsearch"""
         searchQuery = {
             'index': self.index,
             'scroll': self.seedTime,
@@ -45,25 +125,25 @@ class Search():
                         'must': [
                             {
                                 'query_string': {
-                                    'query': kwargs.get('must', 'GenerateTime:*')
+                                    'query': self.must
                                 }
                             }
                         ],
                         'must_not': [
                             {
                                 'query_string': {
-                                    'query': kwargs.get('mustNot', 'GenerateTime:0')
+                                    'query': self.mustNot
                                 }
                             }
                         ],
                         'filter': {
-                            'range': kwargs.get('filter', {'GenerateTime': {'lte': 'now'}})
+                            'range': self.filter
                         }
                     }
                 },
                 'sort': [
                     {
-                        kwargs.get('sort', 'GenerateTime'): {
+                        self.sort: {
                             'order': 'desc'
                         }
                     }
@@ -73,6 +153,7 @@ class Search():
         return searchQuery
 
     def search(self):
+        """Performs the first search request and checks the need for scroll search"""
         self.log.info('Searching {} in {}'.format(self.index, self.url))
         try:
             self.response = requests.post(self.url+self.apiCustom,
@@ -95,18 +176,19 @@ class Search():
                         'Over {} found. Starting scroll search'.format(self.maxSize))
                     self.scrollSearch()
         except Exception as e:
-            self.log.info('Failed to search {} in {}'.format(
+            self.log.warning('Failed to search {} in {}'.format(
                 self.index, self.url))
-            self.log.debug(e)
+            self.log.error(e)
 
     def scrollSearch(self):
+        """Make the scroll search loop"""
         self.log.info(
             '{}/{} downloaded documents'.format(len(self.data), self.total))
         try:
             self.response = requests.post(self.url+self.apiScroll,
-                                        headers={'cluster': self.cluster},
-                                        data=json.dumps(self.scrollQuery),
-                                        verify=self.verifySSL)
+                                          headers={'cluster': self.cluster},
+                                          data=json.dumps(self.scrollQuery),
+                                          verify=self.verifySSL)
             if self.response.status_code < 400:
                 if type(self.response.json().get('took')) is int:
                     self.took += self.response.json().get('took')
@@ -117,17 +199,18 @@ class Search():
                 self.log.debug(self.response)
                 self.scrollSearch()
         except Exception as e:
-            self.log.info('Failed to scroll search {} in {}'.format(
+            self.log.warning('Failed to scroll search {} in {}'.format(
                 self.index, self.url))
-            self.log.debug(e)
-    
+            self.log.error(e)
+
     def formatData(self):
+        """Transforms elasticsearch return data to a list of dictionaries"""
         newData = []
         for d in self.data:
             newDict = dict()
             newDict['id'] = d['_id']
             newDict['type'] = d['_type']
             newDict['index'] = d['_index']
-            newDict.update({k:v for k,v in d['_source'].items()})
+            newDict.update({k: v for k, v in d['_source'].items()})
             newData.append(newDict)
         return newData

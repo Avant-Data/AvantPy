@@ -18,7 +18,7 @@ class UpsertBulk:
         baseurl (str, optional): Baseurl to execute the upsert bulk 
         api (str, optional): Endpoint where the connection with database is set
         cluster (str, optional): Header parameter for communication with the api
-        verifySSL (bool, optional): bool to verify SSL of requests
+        verifySSL (bool, optional): Bool to verify SSL of requests
         chunkSize (int, optional): Number of documents to send in each bulk requests
         threads (int, optional): Number of threads to send each chunk of documents
         url (str, optional): Default to join the url path with api path
@@ -30,18 +30,18 @@ class UpsertBulk:
         failed (int): Number of documents that failed indexing
         errors (dict): Dict subclass for counting hashable objects from collections (Counter)
         log (logger): Logger with __name__
-        baseurl (str): baseurl to execute the upsert bulk 
-        api (str): endpoint where the connection with database is set
-        cluster (str): header parameter for communication with the api
-        verifySSL (bool): bool to verify SSL of requests
+        baseurl (str): Baseurl to execute the upsert bulk 
+        api (str): Endpoint where the connection with database is set
+        cluster (str): Header parameter for communication with the api
+        verifySSL (bool): Bool to verify SSL of requests
         chunkSize (int): Number of documents to send in each bulk requests
         threads (int): Number of threads to send each chunk of documents
         url (str): Default to join the url path with api path
 
     Examples:
-        >>> import avantpy
         >>> import logging
         >>> logging.basicConfig(level=logging.INFO)
+        >>> import avantpy
         >>> dataList = []
         >>> dataList.append({'id':'6fee099da7dfbb67599d7fa7389de898', 'type':'test', 'index':'test', 'testKey': 'firstValue'})
         >>> dataList.append({'id':'58f77dcc14a41b2984e298e86db85c73', 'type':'test', 'index':'test', 'testKey': 'secondValue'})
@@ -104,8 +104,8 @@ class UpsertBulk:
                 self.log.info('Updated: {}, Created {}. '.format(
                     self.updated, self.created))
         except Exception as e:
-            self.log.debug(responseBulk.text)
-            self.log.warning(e)
+            self.log.warning(responseBulk.text)
+            self.log.error(e)
 
     def bulkSend(self, listToIndex: Union[List[dict], Tuple[dict], Set[dict]]):
         """Prepare the list of dictionaries in chunks and manage thread pool if threads are greater than 1
