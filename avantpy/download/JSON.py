@@ -68,7 +68,7 @@ class JSON:
             self.data.extend(data)
             self.log.info('{} with {}. {} dictionaries added to data attribute'.format(response, humanSize(len(response.content)), len(data)))
         except Exception as e:
-            self.log.info('Failed to read {}'.format(url))
+            self.log.warning('Failed to read {}'.format(url))
             self.log.error(e)
 
     def bulkRead(self):

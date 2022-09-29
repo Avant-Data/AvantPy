@@ -27,7 +27,7 @@
 
 ## About <a name = "about"></a>
 
-AvantPy was created with the intention of making it easier to index data in AvantData. This library contains a set of tools capable of prepare data to be in a list of dictionaries format and, after that, manipulate this data in order to index it in AvantData with AvantApi
+This library contains a set of tools capable of prepare data to be in a list of dictionaries format and, after that, manipulate this data and index it in AvantData with AvantApi
 
 ## Installing<a name = "installing"></a>
 
@@ -41,6 +41,44 @@ python setup.py bdist_wheel && pip install dist/avantpy*.whl
 
 The first step to work with AvantPy is to make a list of dictionaries `[{...},{...},{...},...]` containing the data to be indexed.
 To do so, it is possible to it with [download](./avantpy/download/) built-in classes, where the class will be choosed according to the data format.
+
+A example using [Search](./avantpy/download/Search.py) to download documents from avantdata
+
+```python
+>>> import logging
+>>> logging.basicConfig(level=logging.INFO)
+>>> from avantpy.download import Search
+>>> s = Search('https://prod.avantdata.com.br', index='avantscan_results', format=True)
+INFO:avantpy.download.Search:Searching avantscan_results in https://prod.avantdata.com.br
+INFO:avantpy.download.Search:Total of 44639 documents found
+INFO:avantpy.download.Search:Over 5000 found. Starting scroll search
+INFO:avantpy.download.Search:5000/44639 downloaded documents
+INFO:avantpy.download.Search:10000/44639 downloaded documents
+INFO:avantpy.download.Search:15000/44639 downloaded documents
+INFO:avantpy.download.Search:20000/44639 downloaded documents
+INFO:avantpy.download.Search:25000/44639 downloaded documents
+INFO:avantpy.download.Search:30000/44639 downloaded documents
+INFO:avantpy.download.Search:35000/44639 downloaded documents
+INFO:avantpy.download.Search:40000/44639 downloaded documents
+INFO:avantpy.download.Search:44639 downloaded documents
+>>> len(s.data)
+44639
+>>> [type(d) for d in s.data[:5]]
+[<class 'dict'>, <class 'dict'>, <class 'dict'>, <class 'dict'>, <class 'dict'>]
+>>> s.data[0].keys()
+dict_keys(['id', 'type', 'index', 'reportID', 'taskID', 'taskName', 'taskComment', 'targetID', 'targetName', 'targetComment', 'resultID', 'description', 'assetIP', 'assetID', 'resultName', 'nvt', 'originalSeverity', 'originalThreat', 'owner', 'qodValue', 'overridedSeverity', 'overridedThreat', 'executionTime', 'executionTimeZone', 'modificationTime', 'modificationTimeZone', 'scanNVTVersion', 'scanNVTVersionZone', 'portNumber', 'portProtocol', 'portIANA', 'GenerateTime'])
+```
+A example downloading a JSON from CISA
+
+```python
+>>> import logging
+>>> logging.basicConfig(level=logging.INFO)
+>>> import avantpy
+>>> j = avantpy.download.JSON('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json', select='vulnerabilities')
+INFO:avantpy.download.JSON:Reading https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
+INFO:avantpy.download.JSON:<Response [200]> with 706KB. 832 dictionaries added to data attribute
+>>> 
+```
 
 The second step is to prepare the data within list dictionaries to be suitable for indexing. [utils](./avantpy/utils.py) contains various functions to manipulate list of dictionaries, such as `add()` which will add keys and values to each dictionary or `edit()` which will use a function or a regex on a key or on a value.
 

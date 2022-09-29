@@ -110,6 +110,9 @@ class Search():
         if self.format:
             self.data = self.formatData()
 
+    def __repr__(self):
+        return '<{} dictionaries downloaded in data attribute>'.format(len(self.data))
+
     def makeQuery(self):
         """Return the GET /_search object to search in elasticsearch"""
         searchQuery = {
