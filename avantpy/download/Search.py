@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-# https://dzone.com/articles/23-useful-elasticsearch-example-queries
-
 from urllib3.exceptions import InsecureRequestWarning
 import requests
 import logging
 import json
-from ..utils import *
-from typing import Optional, Union, List, Tuple, Set, Any
+from typing import Optional, Any
 
 
 class Search():
