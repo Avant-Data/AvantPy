@@ -1,13 +1,28 @@
 import avantpy
 import logging
+import json
 logging.basicConfig(level=logging.INFO)
 
-#testJ = avantpy.download.JSON('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json', select='vulnerabilities')
-#print(testJ)
-s = avantpy.download.Search('https://prod.avantdata.com.br', index='ZoneH', format=True)
-print(s.data)
-""" dataList = []
-dataList.append({'id':'6fee099da7dfbb67599d7fa7389de898', 'type':'test', 'index':'test', 'testKey': 'firstValue'})
-dataList.append({'id':'58f77dcc14a41b2984e298e86db85c73', 'type':'test', 'index':'test', 'testKey': 'secondValue'})
-dataList.append({'id':'ed23fa12819a63198b5c0b171ebbbf2d', 'type':'test', 'index':'test', 'testKey': 'thirdValue'})
-avantpy.upload.UpsertBulk(dataList, baseurl='https://192.168.102.133/') """
+NAME = 'testingtemplate'
+ALIASES = 'testingTemplate'
+URL = 'https://avantnightly.avantsec.com.br'
+
+dataList = [
+    {
+        'teste': 'valor',
+        'nightly': 'valor',
+        'objeto': {'kkkk': 'll', 'lll': 'oo'},
+        'liksta': [{'aaaaa':2, 'bbbbb':3},{'ccccc':2, 'ddddd':3}]
+    }
+]
+
+template = avantpy.upload.Template(name=NAME,
+                                   template=dataList,
+                                   baseurl=URL)
+
+template.upload()
+dataList = avantpy.utils.add(dataList,
+id=avantpy.utils.generateID,
+index=NAME,
+type=NAME)
+avantpy.upload.UpsertBulk(dataList, baseurl=URL)
