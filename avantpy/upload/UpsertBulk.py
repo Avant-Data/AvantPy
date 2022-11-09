@@ -69,12 +69,13 @@ class UpsertBulk:
         self.verifySSL = verifySSL
         self.chunkSize = chunkSize
         self.threads = threads
+        self.data = data
         self.url = kwargs.get('url', self.baseurl+self.api)
         self.updated, self.created, self.failed = (0, 0, 0)
         self.errors = Counter()
         requests.packages.urllib3.disable_warnings(
             category=InsecureRequestWarning)
-        self.bulkSend(data)
+        self.upload()
 
     def __repr__(self):
         return '<Created: {} / Updated: {} / Failed: {}>'.format(self.created, self.updated, self.failed)
@@ -107,18 +108,18 @@ class UpsertBulk:
             self.log.warning(responseBulk.text)
             self.log.error(e)
 
-    def bulkSend(self, listToIndex: Union[List[dict], Tuple[dict], Set[dict]]):
+    def upload(self):
         """Prepare the list of dictionaries in chunks and manage thread pool if threads are greater than 1
 
         Args:
-            listToIndex (list(dict)): List of dictionaries to be indexed
+            self.data (list(dict)): List of dictionaries to be indexed
         """
-        if listToIndex:
-            self.log.info('Total: {}'.format(len(listToIndex)))
-            chunks = [listToIndex]
-            if len(listToIndex) > self.chunkSize:
-                chunks = [listToIndex[x:x+self.chunkSize]
-                          for x in range(0, len(listToIndex), self.chunkSize)]
+        if self.data:
+            self.log.info('Total: {}'.format(len(self.data)))
+            chunks = [self.data]
+            if len(self.data) > self.chunkSize:
+                chunks = [self.data[x:x+self.chunkSize]
+                          for x in range(0, len(self.data), self.chunkSize)]
             if self.threads > 1:
                 with concurrent.futures.ThreadPoolExecutor(max_workers=self.threads) as executor:
                     executor.map(self.chunkSend, chunks)

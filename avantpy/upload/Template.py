@@ -25,6 +25,7 @@ class Template():
         mappingName (str, optional): Mappings attribute of the template
         templateName (str, optional): Template attribute of the template body
         regenerate (bool, optional): Always create template if True
+        append (bool, optional): Append missing keys in the template if True
 
 
     Attributes:
@@ -41,6 +42,7 @@ class Template():
         mappingName (str): Mappings attribute of the template
         templateName (str): Template attribute of the template body
         regenerate (bool): Always create template if True
+        append (bool): Append missing keys in the template if True
         data(dict): The generated template
 
     Examples:
@@ -48,14 +50,24 @@ class Template():
         >>> logging.basicConfig(level=logging.INFO)
         >>> import avantpy
         >>> dataList = []
-        >>> dataList.append({'id':'6fee099da7dfbb67599d7fa7389de898', 'type':'test', 'index':'test', 'testKey': 'firstValue'})
-        >>> dataList.append({'id':'58f77dcc14a41b2984e298e86db85c73', 'type':'test', 'index':'test', 'testKey': 'secondValue'})
-        >>> dataList.append({'id':'ed23fa12819a63198b5c0b171ebbbf2d', 'type':'test', 'index':'test', 'testKey': 'thirdValue'})
-        >>> avantpy.upload.UpsertBulk(dataList, baseurl='https://192.168.102.133/')
-        INFO:avantpy.upload.UpsertBulk:Total: 3
-        INFO:avantpy.upload.UpsertBulk:Updated: 0, Created 3. 
-        INFO:avantpy.upload.UpsertBulk:3 successfully executed with 0 failures
-        <Created: 3 / Updated: 0 / Failed: 0>
+        >>> dataList.append({'testing1':'test', 'testing2':'test', 'testing3':'test'})
+        >>> dataList.append({'testing4':'test', 'testing5':'test', 'testing6':'test'})
+        >>> template = avantpy.upload.Template(template=dataList, name='testing_template', aliases='TestingTemplate', baseurl='https://192.168.102.133/')
+        >>> template.upload()
+        INFO:avantpy.upload.Template:Uploading template testing_template
+        INFO:avantpy.upload.Template:{"acknowledged":true}
+        >>> template.data.get('body').keys()
+        dict_keys(['template', 'settings', 'mappings', 'aliases'])
+        >>> template.data.get('body').get('mappings').get('testing_template').get('properties').keys()
+        dict_keys(['testing1', 'testing3', 'testing6', 'testing2', 'testing4', 'testing5', 'GenerateTime'])
+        >>> dataList.append({'testing7':'test', 'testing8':'test', 'testing9':'test'})
+        >>> template.upload()
+        INFO:avantpy.upload.Template:Template testing_template already exists
+        >>> template.upload(append=True)
+        INFO:avantpy.upload.Template:Appending keys ['testing7', 'testing8', 'testing9']
+        INFO:avantpy.upload.Template:{"acknowledged":true}
+        >>> template.data.get('body').get('mappings').get('testing_template').get('properties').keys()
+        dict_keys(['testing7', 'testing1', 'testing9', 'testing8', 'testing3', 'testing6', 'testing2', 'testing4', 'testing5', 'GenerateTime']) 
     """
 
     def __init__(self,
@@ -70,6 +82,7 @@ class Template():
                  shards: Optional[int] = 2,
                  typeMap: Optional[dict] = {},
                  regenerate: Optional[bool] = False,
+                 append: Optional[bool] = False,
                  **kwargs):
         self.log = logging.getLogger(__name__)
         self.name = name
@@ -87,6 +100,7 @@ class Template():
         self.shards = shards
         self.typeMap = typeMap
         self.regenerate = regenerate
+        self.append = append
         requests.packages.urllib3.disable_warnings(
             category=InsecureRequestWarning)
         self.data = self.formatTemplate()
@@ -108,8 +122,7 @@ class Template():
             return valuesMap[key]
         return {"type": key}
 
-    def generateProperties(self, template, gtime=True):
-        newDict = dict()
+    def getTemplateDict(self, template):
         if isinstance(template, (list, tuple, set)):
             allKeys = {k for d in template for k in d.keys()}
             templateDict = dict()
@@ -117,27 +130,37 @@ class Template():
                 for di in template:
                     if di.get(key):
                         templateDict[key] = di.get(key)
-                    break
+                    continue
         elif isinstance(template, dict):
             templateDict = template
-        for k,v in templateDict.items():
-            if k in self.typeMap.keys():
-                newDict[k] = self.propertiesMap(self.typeMap[k])
-            elif isinstance(v, dict):
-                newDict[k] = {"properties": self.generateProperties(v, gtime=False)}
-            elif isinstance(v, (list, tuple, set)):
-                newDict[k] = {"type": "object"}
-            else:
-                newDict[k] = {
-                    "type": "text",
+        return templateDict
+
+    def generateProperties(self, template, gtime=True):
+        newDict = dict()
+        textType = {
+            "type": "text",
                     "fields": {
                         "keyword": {
                             "type": "keyword",
                             "ignore_above": 256
                         }
                     },
-                    "analyzer": "WS"
-                }
+            "analyzer": "WS"
+        }
+        templateDict = self.getTemplateDict(template)
+        for k, v in templateDict.items():
+            if k in self.typeMap.keys():
+                newDict[k] = self.propertiesMap(self.typeMap[k])
+            elif isinstance(v, dict):
+                newDict[k] = {
+                    "properties": self.generateProperties(v, gtime=False)}
+            elif isinstance(v, (list, tuple, set)):
+                if all([isinstance(d, dict) for d in v]):
+                    newDict[k] = {"type": "object"}
+                else:
+                    newDict[k] = textType
+            else:
+                newDict[k] = textType
         if not newDict.get('GenerateTime') and gtime:
             newDict["GenerateTime"] = {
                 "type": "date",
@@ -192,7 +215,9 @@ class Template():
         }
         return formattedTemplate
 
-    def upload(self):
+    def upload(self, **kwargs):
+        regenerate = kwargs.get('regenerate', self.regenerate)
+        append = kwargs.get('append', self.append)
         if self.data:
             headers = {
                 'cluster': self.cluster
@@ -201,18 +226,45 @@ class Template():
                                     headers=headers,
                                     verify=self.verifySSL
                                     )
-            print(self.regenerate)
-            if response.status_code == 404 or self.regenerate:
-                self.log.info(
-                    'Template not found. Installing template {}'.format(self.name))
+            if response.status_code == 404 or regenerate:
+                self.log.info('Uploading template {}'.format(self.name))
                 responseCreate = requests.post(url=self.baseurl+self.apiCreate,
                                                headers=headers,
                                                data=json.dumps(self.data),
                                                verify=self.verifySSL)
                 self.log.info(responseCreate.text)
+            elif append:
+                rJson = response.json()
+                tmps = rJson.get(next(iter(rJson)))
+                changed = False
+                appendedKeys = []
+                for k, v in tmps.get('mappings').items():
+                    properties = v.get('properties')
+                    newTemplate = self.getTemplateDict(self.template)
+                    appendKeys = set(newTemplate.keys())-set(properties.keys())
+                    appendedKeys.extend(list(appendKeys))
+                    if appendKeys:
+                        changed = True
+                        appendTemplate = {newK: newTemplate.get(
+                            newK) for newK in appendKeys}
+                        appendProperties = self.generateProperties(
+                            appendTemplate, gtime=False)
+                        properties.update(appendProperties)
+                        rJson[next(iter(rJson))
+                              ]['mappings'][k]['properties'] = properties
+                self.data = {
+                    "name": self.name,
+                    "order": tmps.pop('order'),
+                    "body": rJson.get(next(iter(rJson)))
+                }
+                if changed:
+                    self.log.info('Appending keys {}'.format(appendedKeys))
+                    responseCreate = requests.post(url=self.baseurl+self.apiCreate,
+                                               headers=headers,
+                                               data=json.dumps(self.data),
+                                               verify=self.verifySSL)
+                    self.log.info(responseCreate.text)
+                else:
+                    self.log.info('Nothing to append in template {}'.format(self.name))
             else:
-                print(json.dumps(self.data))
-                print(response.text)
-                print('################')
-                print(json.dumps(json.loads(response.text), indent=4))
                 self.log.info('Template {} already exists'.format(self.name))
