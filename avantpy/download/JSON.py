@@ -41,7 +41,8 @@ class JSON:
                      "Accept-Language": "en-US",
                      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101 Firefox/60.0",
                      "X-Requested-With": "XMLHttpRequest",
-                 }):
+                 },
+                 **kwargs):
         self.log = logging.getLogger(__name__)
         self.request = request if isinstance(
             request, (list, tuple, set)) else [request]

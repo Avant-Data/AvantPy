@@ -48,9 +48,9 @@ class UpsertBulk:
         >>> dataList.append({'id':'ed23fa12819a63198b5c0b171ebbbf2d', 'type':'test', 'index':'test', 'testKey': 'thirdValue'})
         >>> avantpy.upload.UpsertBulk(dataList, baseurl='https://192.168.102.133/')
         INFO:avantpy.upload.UpsertBulk:Total: 3
-        INFO:avantpy.upload.UpsertBulk:Updated: 0, Created 3. 
+        INFO:avantpy.upload.UpsertBulk:Updated: 0, Created: 3. 
         INFO:avantpy.upload.UpsertBulk:3 successfully executed with 0 failures
-        <Created: 3 / Updated: 0 / Failed: 0>
+        INFO:avantpy.upload.UpsertBulk: Created: 3 / Updated: 0 / Failed: 0
     """
 
     def __init__(self,
@@ -75,10 +75,9 @@ class UpsertBulk:
         self.errors = Counter()
         requests.packages.urllib3.disable_warnings(
             category=InsecureRequestWarning)
-        self.upload()
 
     def __repr__(self):
-        return '<Created: {} / Updated: {} / Failed: {}>'.format(self.created, self.updated, self.failed)
+        return '{} documents ready to be uploaded to {}. Use upload() method to upload'.format(len(self.data), self.baseurl)
 
     def chunkSend(self, chunk: Union[List[dict], Tuple[dict], Set[dict]]):
         """Sends parts of the dictionary list to be indexed
@@ -102,7 +101,7 @@ class UpsertBulk:
                 if responseJson.get('errors'):
                     self.errors.update(Counter(item.get('update').get('error').get(
                         'reason') for item in responseJson.get('items') if item.get('update').get('error')))
-                self.log.info('Updated: {}, Created {}. '.format(
+                self.log.info('Updated: {}, Created: {}. '.format(
                     self.updated, self.created))
         except Exception as e:
             self.log.warning(responseBulk.text)
@@ -128,5 +127,6 @@ class UpsertBulk:
                     self.log.warning('{} failed. Reason: {}'.format(v, k))
             self.log.info('{} successfully executed with {} failures'.format(
                 self.updated+self.created, self.failed))
+            self.log.info('Created: {} / Updated: {} / Failed: {}'.format(self.created, self.updated, self.failed))
         else:
             self.log.info('Empty list')

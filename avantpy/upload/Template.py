@@ -83,7 +83,7 @@ class Template():
                  custom: Optional[dict] = {},
                  regenerate: Optional[bool] = False,
                  append: Optional[bool] = False,
-                 **kwargs):
+                 **kwargs: Any):
         self.log = logging.getLogger(__name__)
         self.name = name
         self.template = template
@@ -95,7 +95,7 @@ class Template():
         self.templateName = kwargs.get('templateName', self.name+'*')
         self.mappingName = kwargs.get('mappingName', self.name)
         self.aliases = kwargs.get('aliases', re.sub(
-            r'[^a-zA-Z0-9].*', '', self.name.title()))
+            r'[^a-zA-Z0-9_]*', '', self.name.title()))
         self.order = order
         self.shards = shards
         self.custom = custom
@@ -167,8 +167,8 @@ class Template():
         }
         templateDict = self.getTemplateDict(template)
         for k, v in templateDict.items():
-            if k in self.typeMap.keys():
-                newDict[k] = self.propertiesMap(self.typeMap[k])
+            if k in self.custom.keys():
+                newDict[k] = self.propertiesMap(self.custom[k])
             elif isinstance(v, dict):
                 newDict[k] = {
                     "properties": self.generateProperties(v, gtime=False)}

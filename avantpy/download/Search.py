@@ -25,7 +25,6 @@ class Search():
         size (int, optional): Number of documents to be searched (max 5000)
         maxSize (int, optional): Number of documents to start scroll search
         seedTime (str, optional): Period to retain the search context for scrolling,
-        format (bool, optional): Format data to be in a list of dictionaries where each dictionary is a document
 
     Attributes:
         data (list(dict)): Downloaded documents as a list of dictionaries
@@ -43,14 +42,13 @@ class Search():
         size (int): Number of documents to be searched (max 5000)
         maxSize (int): Number of documents to start scroll search
         seedTime (str): Period to retain the search context for scrolling,
-        format (bool): Format data to be in a list of dictionaries where each dictionary is a document
         took (int): Time elasticsearch took to process the query on its side
 
     Examples:
         >>> import logging
         >>> logging.basicConfig(level=logging.INFO)
         >>> import avantpy
-        >>> s = avantpy.download.Search('https://prod.avantdata.com.br', index='avantscan_results', format=True)
+        >>> s = avantpy.download.Search('https://prod.avantdata.com.br', index='avantscan_results')
         INFO:avantpy.download.Search:Searching avantscan_results in https://prod.avantdata.com.br
         INFO:avantpy.download.Search:Total of 44639 documents found
         INFO:avantpy.download.Search:Over 5000 found. Starting scroll search
@@ -83,7 +81,6 @@ class Search():
                  size: Optional[int] = 5000,
                  maxSize: Optional[int] = 5000,
                  seedTime: Optional[str] = '8m',
-                 format: Optional[bool] = False,
                   **kwargs: Any):
         self.log = logging.getLogger(__name__)
         self.url = url
@@ -99,16 +96,15 @@ class Search():
         self.size = size
         self.maxSize = maxSize
         self.seedTime = seedTime
-        self.format = format
         self.query = kwargs.get('query', self.makeQuery())
         self.data = []
         self.took = 0
         requests.packages.urllib3.disable_warnings(
             category=InsecureRequestWarning)
         self.search()
+        self.raw = self.data.copy()
+        self.data = self.formatData()
         self.log.info('{} downloaded documents'.format(len(self.data)))
-        if self.format:
-            self.data = self.formatData()
 
     def __repr__(self):
         return '<{} dictionaries downloaded in data attribute>'.format(len(self.data))
