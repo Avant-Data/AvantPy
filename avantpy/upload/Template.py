@@ -20,7 +20,7 @@ class Template():
         verifySSL (bool, optional): Bool to verify SSL of requests
         order (int, optional): Order attribute of the template
         shards (int, optional): Shards attribute of the template
-        typeMap (dict, optional): Attributes to not be considered as text
+        custom (dict, optional): Attributes to not be considered as text
         aliases (str, optional): Aliases attribute of the template
         mappingName (str, optional): Mappings attribute of the template
         templateName (str, optional): Template attribute of the template body
@@ -37,7 +37,7 @@ class Template():
         verifySSL (bool): Bool to verify SSL of requests
         order (int): Order attribute of the template
         shards (int): Shards attribute of the template
-        typeMap (dict): Attributes to not be considered as text
+        custom (dict): Attributes to not be considered as text
         aliases (str): Aliases attribute of the template
         mappingName (str): Mappings attribute of the template
         templateName (str): Template attribute of the template body
@@ -80,7 +80,7 @@ class Template():
                  verifySSL: Optional[str] = False,
                  order: Optional[int] = 1,
                  shards: Optional[int] = 2,
-                 typeMap: Optional[dict] = {},
+                 custom: Optional[dict] = {},
                  regenerate: Optional[bool] = False,
                  append: Optional[bool] = False,
                  **kwargs):
@@ -98,7 +98,7 @@ class Template():
             r'[^a-zA-Z0-9].*', '', self.name.title()))
         self.order = order
         self.shards = shards
-        self.typeMap = typeMap
+        self.custom = custom
         self.regenerate = regenerate
         self.append = append
         requests.packages.urllib3.disable_warnings(
@@ -108,7 +108,14 @@ class Template():
     def __repr__(self):
         return 'Generated template:\n{}'.format(json.dumps(self.data, indent=4))
 
-    def propertiesMap(self, key):
+    def propertiesMap(self, value: Union[dict, str]) -> dict:
+        """Allows custom values to be passed as part of the template
+        
+        Args:
+            value (dict or str): str or dict with the value to be customized
+        """
+        if isinstance(value, dict):
+            return value
         valuesMap = {
             "date": {
                 "type": "date",
@@ -118,11 +125,16 @@ class Template():
                 "type": "integer"
             },
         }
-        if valuesMap.get(key):
-            return valuesMap[key]
-        return {"type": key}
+        if valuesMap.get(value):
+            return valuesMap[value]
+        return {"type": value}
 
-    def getTemplateDict(self, template):
+    def getTemplateDict(self, template: Union[List[dict], Tuple[dict], Set[dict], dict]) -> dict:
+        """Extract all keys if template is sent as a list of dictionaries
+        
+        Args:
+            template (list or dict): get all keys from a dictionary or dictionaries inside a list
+        """
         if isinstance(template, (list, tuple, set)):
             allKeys = {k for d in template for k in d.keys()}
             templateDict = dict()
@@ -136,6 +148,12 @@ class Template():
         return templateDict
 
     def generateProperties(self, template, gtime=True):
+        """Generate the properties part of the template
+                
+        Args:
+            template (list or dict): template for creating the template JSON
+            gtime (bool): Generate the GenerateTime propertie
+        """
         newDict = dict()
         textType = {
             "type": "text",
@@ -169,6 +187,7 @@ class Template():
         return newDict
 
     def formatTemplate(self):
+        """Generate the complete template"""
         if isinstance(self.template, (list, tuple, set, dict)):
             properties = self.generateProperties(self.template)
         else:
@@ -216,6 +235,12 @@ class Template():
         return formattedTemplate
 
     def upload(self, **kwargs):
+        """Upload the template to AvantData
+
+        Args:
+            regenerate (bool): always create a template if True
+            append (bool): append missing keys to the current template if True
+        """
         regenerate = kwargs.get('regenerate', self.regenerate)
         append = kwargs.get('append', self.append)
         if self.data:
@@ -260,11 +285,12 @@ class Template():
                 if changed:
                     self.log.info('Appending keys {}'.format(appendedKeys))
                     responseCreate = requests.post(url=self.baseurl+self.apiCreate,
-                                               headers=headers,
-                                               data=json.dumps(self.data),
-                                               verify=self.verifySSL)
+                                                   headers=headers,
+                                                   data=json.dumps(self.data),
+                                                   verify=self.verifySSL)
                     self.log.info(responseCreate.text)
                 else:
-                    self.log.info('Nothing to append in template {}'.format(self.name))
+                    self.log.info(
+                        'Nothing to append in template {}'.format(self.name))
             else:
                 self.log.info('Template {} already exists'.format(self.name))

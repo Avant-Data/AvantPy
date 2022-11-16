@@ -109,11 +109,7 @@ class UpsertBulk:
             self.log.error(e)
 
     def upload(self):
-        """Prepare the list of dictionaries in chunks and manage thread pool if threads are greater than 1
-
-        Args:
-            self.data (list(dict)): List of dictionaries to be indexed
-        """
+        """Prepare the list of dictionaries in chunks and manage thread pool if threads are greater than 1"""
         if self.data:
             self.log.info('Total: {}'.format(len(self.data)))
             chunks = [self.data]
