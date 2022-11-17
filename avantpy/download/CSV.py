@@ -16,6 +16,9 @@ class CSV():
         self.data = []
         self.readCSV()
 
+    def __repr__(self):
+        return '<{} dictionaries downloaded in data attribute>'.format(len(self.data))
+
     def readCSV(self):
         try:
             self.log.info('Reading '+self.request)
@@ -23,5 +26,5 @@ class CSV():
             self.data = [i for i in csv.DictReader(
                 [line.decode(self.decode, errors='ignore') for line in self.response][self.start:self.end])]
         except Exception as e:
-            self.log.info('Failed to read '+self.request)
-            self.log.debug(e)
+            self.log.warning('Failed to read '+self.request)
+            self.log.error(e)
