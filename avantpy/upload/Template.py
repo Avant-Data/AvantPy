@@ -141,8 +141,13 @@ class Template():
             for key in allKeys:
                 for di in template:
                     if di.get(key):
-                        templateDict[key] = di.get(key)
-                    continue
+                        if isinstance(di.get(key), dict):
+                            if not templateDict.get(key):
+                                templateDict[key] = dict()
+                            templateDict[key].update(di.get(key))
+                        else:
+                            templateDict[key] = di.get(key)
+                            break
         elif isinstance(template, dict):
             templateDict = template
         return templateDict
