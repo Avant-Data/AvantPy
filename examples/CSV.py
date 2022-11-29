@@ -1,7 +1,6 @@
 """ Downloading a CSV from MITRE, creating a template and sending CSV data to avantdata"""
 import avantpy
 import logging
-import json
 logging.basicConfig(level=logging.INFO)
 
 URL = 'https://cve.mitre.org/data/downloads/allitems.csv'
