@@ -64,8 +64,8 @@ A example using [Search](./avantpy/download/Search.py) to download documents fro
 >>> import logging
 >>> logging.basicConfig(level=logging.INFO)
 >>> from avantpy.download import Search
->>> s = Search('https://192.168.102.10/', index='avantscan_results')
-INFO:avantpy.download.Search:Searching avantscan_results in https://192.168.102.10
+>>> s = Search('https://192.168.102.133/', index='avantscan_results')
+INFO:avantpy.download.Search:Searching avantscan_results in https://192.168.102.133
 INFO:avantpy.download.Search:Total of 44639 documents found
 INFO:avantpy.download.Search:Over 5000 found. Starting scroll search
 INFO:avantpy.download.Search:5000/44639 downloaded documents
@@ -99,7 +99,7 @@ INFO:avantpy.download.JSON:<Response [200]> with 740KB. 868 dictionaries added t
 After having the data, it is time to prepare it to be uploaded to AvantData. A [template](./avantpy/upload/Template.py) must be made with the data structure. This is an example of how to make a template with data downloaded from CISA
 ```python
 >>> from avantpy.upload import Template
->>> template = Template(name='kev', template=kev.data, baseurl='https://192.168.102.10', append=True)
+>>> template = Template(name='kev', template=kev.data, baseurl='https://192.168.102.133', append=True)
 >>> template.upload()
 INFO:avantpy.upload.Template:Uploading template kev
 INFO:avantpy.upload.Template:{"acknowledged":true}
@@ -109,7 +109,7 @@ And finally, data can now be uploaded to AvantData using this UpsertBulk example
 >>> from avantpy import utils
 >>> from avantpy.upload import UpsertBulk
 >>> kev.data = utils.add(kevfrom.data, id=utils.generateID, type='kev', index='kev')
->>> UpsertBulk(kev.data, baseurl='https://192.168.102.10').upload()
+>>> UpsertBulk(kev.data, baseurl='https://192.168.102.133').upload()
 INFO:avantpy.upload.UpsertBulk:Total: 868
 INFO:avantpy.upload.UpsertBulk:Updated: 0, Created 868. 
 INFO:avantpy.upload.UpsertBulk:868 successfully executed with 0 failures
