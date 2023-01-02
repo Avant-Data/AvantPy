@@ -32,10 +32,9 @@ This library contains a set of tools capable of prepare data to be in a list of 
 
 ## Installing<a name = "installing"></a>
 
-The installation can be done by exporting the [avantpy](./avantpy) folder to the local working repository or by installing it as a library. The installation as library can be done by making the wheel with [setup.py](./setup.py) file and installing it with pip
-
+Install avantpy with pip using this repository as a reference
 ```shell
-python setup.py bdist_wheel && pip install dist/avantpy*.whl
+pip install git+https://github.com/Avant-Data/AvantPy.git
 ```
 
 ## Usage <a name="usage"></a>
