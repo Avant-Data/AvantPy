@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 import avantpy
-
 
 def test_generateID():
     assert avantpy.utils.generateID(

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from typing import Callable, Set, Tuple, Union, Optional, List, Dict, Any
 
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from urllib3.exceptions import InsecureRequestWarning
 from collections import Counter
 import concurrent.futures
