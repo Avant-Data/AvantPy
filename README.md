@@ -36,6 +36,10 @@ Install avantpy with pip using this repository as a reference
 ```shell
 pip install git+https://github.com/Avant-Data/AvantPy.git
 ```
+The installation can also be done by downloading the project and installing the wheel file from inside the project folder
+```shell
+python setup.py bdist_wheel && pip install dist/avantpy*.whl
+```
 
 ## Usage <a name="usage"></a>
 

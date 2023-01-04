@@ -6,7 +6,7 @@ setup(
     description='Avant Data Python Library',
     long_description=open('README.md').read(),
     author='AvantData',
-    install_requires=[],
+    install_requires=['requests', 'dateparser'],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     test_suite='tests',
