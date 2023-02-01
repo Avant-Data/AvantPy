@@ -112,7 +112,7 @@ And finally, data can now be uploaded to AvantData using this UpsertBulk example
 ```python
 >>> from avantpy import utils
 >>> from avantpy.upload import UpsertBulk
->>> kev.data = utils.add(kevfrom.data, id=utils.generateID, type='kev', index='kev')
+>>> kev.data = utils.add(kev.data, id=utils.generateID, type='kev', index='kev')
 >>> UpsertBulk(kev.data, baseurl='https://192.168.102.133').upload()
 INFO:avantpy.upload.UpsertBulk:Total: 868
 INFO:avantpy.upload.UpsertBulk:Updated: 0, Created 868. 
