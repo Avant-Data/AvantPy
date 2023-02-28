@@ -1,6 +1,7 @@
 from urllib3.exceptions import InsecureRequestWarning
 from collections import Counter
 import concurrent.futures
+import socket
 import logging
 import requests
 import json
@@ -54,7 +55,7 @@ class UpsertBulk:
 
     def __init__(self,
                  data: Union[List[dict], Tuple[dict], Set[dict]],
-                 baseurl: Optional[str] = 'https://127.0.0.1',
+                 baseurl: Optional[str] = '',
                  api: Optional[str] = '/avantapi/avantData/index/bulk/general/upsert',
                  cluster: Optional[str] = 'AvantData',
                  verifySSL: Optional[bool] = False,
@@ -62,7 +63,7 @@ class UpsertBulk:
                  threads: Optional[int] = 1,
                  **kwargs: Any):
         self.log = logging.getLogger(__name__)
-        self.baseurl = baseurl
+        self.baseurl = self.getUrl(baseurl)
         self.api = api
         self.cluster = cluster
         self.verifySSL = verifySSL
@@ -79,10 +80,26 @@ class UpsertBulk:
         return '{} documents ready to be uploaded to {}. Use upload() method to upload'.format(len(self.data), self.baseurl)
 
     def chunkSend(self, chunk: Union[List[dict], Tuple[dict], Set[dict]]):
-        """Sends parts of the dictionary list to be indexed
+        """
+        Sends a chunk of data to be indexed into the Elasticsearch cluster.
 
         Args:
-            chunk (list(dict)): A chunk with chunkSize argument size
+            chunk (list(dict) or tuple(dict) or set(dict)): A list of dictionaries to be indexed.
+
+        Returns:
+            None
+
+        Raises:
+            None
+
+        The function sends a chunk of data to be indexed into the Elasticsearch cluster by making a PUT request
+        to the Elasticsearch server. The data is sent as a JSON object in the request body, and the 'cluster' header 
+        is set to the cluster name provided during object instantiation.
+
+        The function then processes the response returned from the Elasticsearch server. It updates the 'updated'
+        and 'created' counters based on the number of documents that were updated and created, respectively. If there
+        were any errors during indexing, the function updates the 'errors' dictionary with the count of errors
+        encountered, along with the reason for each error.
         """
         jsonToSend = {'body': json.loads(json.dumps(chunk))}
         headers = {'cluster': self.cluster}
@@ -107,7 +124,27 @@ class UpsertBulk:
             self.log.error(e)
 
     def upload(self):
-        """Prepare the list of dictionaries in chunks and manage thread pool if threads are greater than 1"""
+        """
+        This function uploads data in chunks and returns a status message.
+        
+        If the `data` attribute of the object is not empty, the function logs the total number of items in the `data`
+        list, and splits the list into chunks (of size `chunkSize`) for concurrent processing using threads (number of
+        threads is `threads`).
+        
+        If `threads` is greater than 1, the function uses `concurrent.futures.ThreadPoolExecutor` to execute the
+        `chunkSend` method on the chunks concurrently. If `threads` is 1 or less, the function executes the `chunkSend`
+        method on each chunk sequentially.
+        
+        If there were any errors during execution, the function logs the reasons for the failures along with the number
+        of items that failed.
+        
+        The function logs the number of items that were created and updated successfully, as well as the number of items
+        that failed.
+        
+        Returns:
+        - A string representing the status of the upload operation. The string logs the total number of items in the `data`
+        list, the number of items that were created and updated successfully, as well as the number of items that failed.
+        """
         if self.data:
             self.log.info('Total: {}'.format(len(self.data)))
             chunks = [self.data]
@@ -129,3 +166,28 @@ class UpsertBulk:
             self.log.info('Created: {} / Updated: {} / Failed: {}'.format(self.created, self.updated, self.failed))
         else:
             self.log.info('Empty list')
+
+    def getUrl(self, url):
+        """
+        This function returns a URL string.
+        
+        If the `url` argument is not empty, the function simply returns it.
+        
+        If the `url` argument is empty, the function creates a UDP socket and connects to the IP address and port
+        of Google's public DNS server (8.8.8.8 on port 80) to get the IP address of the host. It then formats the IP
+        address as a string and returns it with the `https://` protocol prefix.
+        
+        Args:
+        - url: string representing the URL that the function will try to retrieve.
+        
+        Returns:
+        - A string representing the URL. If `url` is empty, the URL is formatted as 'https://{host_ip}' where
+        `host_ip` is the IP address of the host.
+        """
+        if not url:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(('8.8.8.8', 80))
+            host_ip = s.getsockname()[0]
+            s.close()
+            return 'https://{}'.format(host_ip)
+        return url
