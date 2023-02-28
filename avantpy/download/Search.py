@@ -5,11 +5,9 @@ import json
 from typing import Optional, Any
 
 
-class Search():
+class Search:
     """Search
-
     A class to manage downloads from avantdata
-
     Args:
         url (str): AvantData URL
         index (str, optional): Index where the documents are
@@ -24,7 +22,6 @@ class Search():
         size (int, optional): Number of documents to be searched (max 5000)
         maxSize (int, optional): Number of documents to start scroll search
         seedTime (str, optional): Period to retain the search context for scrolling,
-
     Attributes:
         data (list(dict)): Downloaded documents as a list of dictionaries
         url (str): AvantData URL
@@ -42,7 +39,6 @@ class Search():
         maxSize (int): Number of documents to start scroll search
         seedTime (str): Period to retain the search context for scrolling,
         took (int): Time elasticsearch took to process the query on its side
-
     Examples:
         >>> import logging
         >>> logging.basicConfig(level=logging.INFO)
@@ -80,6 +76,7 @@ class Search():
                  size: Optional[int] = 5000,
                  maxSize: Optional[int] = 5000,
                  seedTime: Optional[str] = '8m',
+                 aggs: Optional[dict] = {},
                   **kwargs: Any):
         self.log = logging.getLogger(__name__)
         self.url = url
@@ -95,6 +92,7 @@ class Search():
         self.size = size
         self.maxSize = maxSize
         self.seedTime = seedTime
+        self.aggs = aggs
         self.query = kwargs.get('query', self.makeQuery())
         self.data = []
         self.took = 0
@@ -145,6 +143,9 @@ class Search():
                 ]
             }
         }
+        if self.aggs:
+            searchQuery['body']['size'] = 0
+            searchQuery['body']['aggs'] = self.aggs
         return searchQuery
 
     def search(self):
@@ -155,7 +156,7 @@ class Search():
                                           headers={'cluster': self.cluster},
                                           data=json.dumps(self.query),
                                           verify=self.verifySSL)
-            if self.response.status_code < 400:
+            if self.response.status_code < 400 and isinstance(self.response.json(), dict) and not self.aggs:
                 self.scrollID = self.response.json().get('_scroll_id')
                 self.total = self.response.json().get('hits').get('total')
                 self.log.info('Total of {} documents found'.format(self.total))
@@ -170,10 +171,13 @@ class Search():
                     self.log.info(
                         'Over {} found. Starting scroll search'.format(self.maxSize))
                     self.scrollSearch()
-        except Exception as e:
-            self.log.warning('Failed to search {} in {}'.format(
-                self.index, self.url))
-            self.log.error(e)
+            elif self.aggs and isinstance(self.response.json(), dict):
+                if type(self.response.json().get('took')) is int:
+                    self.took += self.response.json().get('took')
+                self.data.append(self.response.json().get('aggregations'))
+        except Exception:
+            self.log.error('Failed to search {} in {}'.format(
+                self.index, self.url), exc_info=True)
 
     def scrollSearch(self):
         """Make the scroll search loop"""
@@ -201,11 +205,14 @@ class Search():
     def formatData(self):
         """Transforms elasticsearch return data to a list of dictionaries"""
         newData = []
-        for d in self.data:
-            newDict = dict()
-            newDict['id'] = d['_id']
-            newDict['type'] = d['_type']
-            newDict['index'] = d['_index']
-            newDict.update({k: v for k, v in d['_source'].items()})
-            newData.append(newDict)
+        if self.aggs:
+            newData = self.data
+        else:
+            for d in self.data:
+                newDict = dict()
+                newDict['id'] = d['_id']
+                newDict['type'] = d['_type']
+                newDict['index'] = d['_index']
+                newDict.update({k: v for k, v in d['_source'].items()})
+                newData.append(newDict)
         return newData
