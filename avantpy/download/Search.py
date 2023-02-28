@@ -1,4 +1,5 @@
 from urllib3.exceptions import InsecureRequestWarning
+import socket
 import requests
 import logging
 import json
@@ -9,7 +10,7 @@ class Search:
     """Search
     A class to manage downloads from avantdata
     Args:
-        url (str): AvantData URL
+        url (str, optional): AvantData URL
         index (str, optional): Index where the documents are
         must (str, optional): Must query_string from elasticsearch
         mustNot (str, optional): = Must_not query_string from elasticsearch
@@ -63,7 +64,7 @@ class Search:
     """
 
     def __init__(self,
-                 url: str,
+                 url: Optional[str] = '',
                  index: Optional[str] = '*',
                  must: Optional[str] = 'GenerateTime:*',
                  mustNot: Optional[str] = 'GenerateTime:0',
@@ -79,7 +80,7 @@ class Search:
                  aggs: Optional[dict] = {},
                   **kwargs: Any):
         self.log = logging.getLogger(__name__)
-        self.url = url
+        self.url = self.getUrl(url)
         self.index = index
         self.must = must
         self.mustNot = mustNot
@@ -216,3 +217,12 @@ class Search:
                 newDict.update({k: v for k, v in d['_source'].items()})
                 newData.append(newDict)
         return newData
+    
+    def getUrl(self, url):
+        if not url:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(('8.8.8.8', 80))
+            host_ip = s.getsockname()[0]
+            s.close()
+            return 'https://{}'.format(host_ip)
+        return url
