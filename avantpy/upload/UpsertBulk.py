@@ -80,8 +80,7 @@ class UpsertBulk:
         return '{} documents ready to be uploaded to {}. Use upload() method to upload'.format(len(self.data), self.baseurl)
 
     def chunkSend(self, chunk: Union[List[dict], Tuple[dict], Set[dict]]):
-        """
-        Sends a chunk of data to be indexed into the Elasticsearch cluster.
+        """Sends a chunk of data to be indexed into the Elasticsearch cluster.
 
         Args:
             chunk (list(dict) or tuple(dict) or set(dict)): A list of dictionaries to be indexed.
@@ -124,8 +123,7 @@ class UpsertBulk:
             self.log.error(e)
 
     def upload(self):
-        """
-        This function uploads data in chunks and returns a status message.
+        """This function uploads data in chunks and returns a status message.
         
         If the `data` attribute of the object is not empty, the function logs the total number of items in the `data`
         list, and splits the list into chunks (of size `chunkSize`) for concurrent processing using threads (number of
@@ -167,9 +165,8 @@ class UpsertBulk:
         else:
             self.log.info('Empty list')
 
-    def getUrl(self, url):
-        """
-        This function returns a URL string.
+    def getUrl(self, url: str) -> str:
+        """This function returns a URL string.
         
         If the `url` argument is not empty, the function simply returns it.
         
