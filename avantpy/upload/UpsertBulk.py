@@ -172,8 +172,7 @@ class UpsertBulk:
             url: string representing the URL that the function will try to retrieve.
         
         Returns:
-            A string representing the URL. If `url` is empty, the URL is formatted as 'https://{host_ip}' where
-        `host_ip` is the IP address of the host.
+            str: The URL to use for API requests.
         """
         if not url:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

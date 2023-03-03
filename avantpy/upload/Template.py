@@ -1,5 +1,6 @@
 import requests
 import logging
+import socket
 import json
 import re
 from typing import Optional, Union, List, Tuple, Set, Any
@@ -73,7 +74,7 @@ class Template():
     def __init__(self,
                  name: str,
                  template: Union[List[dict], Tuple[dict], Set[dict], dict],
-                 baseurl: Optional[str] = 'https://127.0.0.1',
+                 baseurl: Optional[str] = '',
                  api: Optional[str] = '/avantapi/avantData/template',
                  apiCreate: Optional[str] = '/avantapi/avantData/template/create',
                  cluster: Optional[str] = 'AvantData',
@@ -87,7 +88,7 @@ class Template():
         self.log = logging.getLogger(__name__)
         self.name = name
         self.template = template
-        self.baseurl = baseurl
+        self.baseurl = self.getUrl(baseurl)
         self.api = api
         self.apiCreate = apiCreate
         self.cluster = cluster
@@ -316,3 +317,26 @@ class Template():
                         'Nothing to append in template {}'.format(self.name))
             else:
                 self.log.info('Template {} already exists'.format(self.name))
+
+    def getUrl(self, url: str) -> str:
+        """This function returns a URL string.
+        
+        If the `url` argument is not empty, the function simply returns it.
+        
+        If the `url` argument is empty, the function creates a UDP socket and connects to the IP address and port
+        of Google's public DNS server (8.8.8.8 on port 80) to get the IP address of the host. It then formats the IP
+        address as a string and returns it with the `https://` protocol prefix.
+        
+        Args:
+            url: string representing the URL that the function will try to retrieve.
+        
+        Returns:
+            str: The URL to use for API requests.
+        """
+        if not url:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(('8.8.8.8', 80))
+            host_ip = s.getsockname()[0]
+            s.close()
+            return 'https://{}'.format(host_ip)
+        return url
