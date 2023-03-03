@@ -19,7 +19,7 @@ for i, cve in enumerate(dataList):
         dataList[i]['References'] = dict(reference.strip().split(':', 1) for reference in cve.get('References').split('   |   '))
 
 # Remove all empty data
-dataList = avantpy.utils.edit(dataList, values=avantpy.utils.removeEmpty)
+dataList = avantpy.utils.edit(dataList, values=avantpy.utils.remove_empty)
 
 # Create and upload the template to AvantData, appending data if some other key is added to the CSV in the future
 template = avantpy.upload.Template(name=NAME,
