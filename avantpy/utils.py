@@ -17,6 +17,7 @@ def generateID(data: Any) -> str:
         data = json.dumps(data)
     return hashlib.md5(data.encode('utf-8')).hexdigest()
 
+#hadiushduiasdhuiasdhiuasdhuiadshuiads
 
 def edit(
     data: Union[List[dict], Tuple[dict], Set[dict]],
@@ -24,7 +25,6 @@ def edit(
     values: Optional[Union[dict, list, tuple, set, Callable]] = None,
     items: Optional[Dict[Union[str, int, float, bool], Union[str,
                                                              Callable]]] = {},
-    threads: Optional[int] = None
 ) -> Union[List[dict], Tuple[dict], Set[dict]]:
     """Edit a list of dictionaries applying functions or regex in keys and values
 
@@ -33,13 +33,10 @@ def edit(
         keys: Functions or dictionaries with format {pattern, replace} to be applied to keys
         values: Functions or dictionaries with format {pattern, replace} to be applied to values
         items: Dictionary with format {key, function or {pattern, replace}} to be applied to values with corresponding keys
-        threads: Number of threads to execute list editing
-
     Returns:
         The edited list
     """
     import re
-
     def regexReplace(value, toReplace):
         for k, v in toReplace.items():
             value = re.sub(k, v, value)
@@ -52,14 +49,11 @@ def edit(
             for item in toReplace:
                 if callable(item):
                     value = item(value)
-                elif type(item) is dict and item and value:
+                elif type(item) is dict and item and isinstance(value, str):
                     value = regexReplace(value, item)
-        elif type(toReplace) is dict and toReplace and value:
+        elif type(toReplace) is dict and toReplace and isinstance(value, str):
             value = regexReplace(value, toReplace)
         return value
-
-    if threads:
-        return threadList(edit, data, keys, values, items, workers=threads)
     if type(data) is dict:
         tDict = dict()
         for key, value in data.items():
@@ -91,32 +85,32 @@ def edit(
             return set(tList)
         return tList
 
+def get_url(self, url: str) -> str:
+        """This function returns a URL string.
+        
+        If the `url` argument is not empty, the function simply returns it.
+        
+        If the `url` argument is empty, the function creates a UDP socket and connects to the IP address and port
+        of Google's public DNS server (8.8.8.8 on port 80) to get the IP address of the host. It then formats the IP
+        address as a string and returns it with the `https://` protocol prefix.
+        
+        Args:
+            url: string representing the URL that the function will try to retrieve.
+        
+        Returns:
+            str: The URL to use for API requests.
+        """
+        if not url:
+            import socket
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(('8.8.8.8', 80))
+            host_ip = s.getsockname()[0]
+            s.close()
+            return 'https://{}'.format(host_ip)
+        return url
 
-def threadList(method: Callable, data: list, **kwargs):
-    """Executes a function in a list with ThreadPoolExecutor
 
-    Args:
-        method: Function to execute with ThreadPoolExecutor
-        data: List to be broken into several lists
-        workers: Number of threads
-        chunks: Number of parts to divide the list
-
-    Returns:
-        The list after the function with threads has been executed
-    """
-    import concurrent.futures
-    from functools import partial
-    workers = kwargs.pop('workers', 1)
-    lists = unflatten(data, kwargs.pop('chunks', workers))
-    completeList = list()
-    with concurrent.futures.ThreadPoolExecutor(
-            max_workers=workers) as executor:
-        for result in executor.map(partial(method, **kwargs), lists):
-            completeList.extend(result)
-        return completeList
-
-
-def humanSize(
+def human_size(
     bytes: int,
     units: Optional[list] = [' bytes', 'KB', 'MB', 'GB', 'TB', 'PB',
                              'EB']) -> str:
@@ -129,11 +123,11 @@ def humanSize(
     Returns:
         The string in plain read format
     """
-    return str(bytes) + units[0] if bytes < 1024 else humanSize(
+    return str(bytes) + units[0] if bytes < 1024 else human_size(
         bytes >> 10, units[1:])
 
 
-def camelCase(s: str) -> str:
+def camel_case(s: str) -> str:
     """Puts the string in camelCase format
 
     Args:
@@ -149,7 +143,7 @@ def camelCase(s: str) -> str:
     return s
 
 
-def removeEmpty(s: str) -> str:
+def remove_empty(s: str) -> str:
     """Replace empty values with None
 
     Args:
@@ -163,7 +157,6 @@ def removeEmpty(s: str) -> str:
     if s:
         return s
     return None
-
 
 def flatten(lists: List[list]) -> list:
     """Flatten all list elements in a list
@@ -256,9 +249,6 @@ def add(lst: List[dict], **kwargs: Any) -> list:
     Returns:
         The list with added keys and values
     """
-    threads = kwargs.pop('threads', None)
-    if threads:
-        return threadList(add, lst, **kwargs, workers=threads)
     newLst = list()
     for l in lst:
         newDict = dict()
