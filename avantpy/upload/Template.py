@@ -45,7 +45,7 @@ class Template():
         append (bool): Append missing keys in the template if True
         data(dict): The generated template
 
-    Examples:
+    Example:
         >>> import logging
         >>> logging.basicConfig(level=logging.INFO)
         >>> import avantpy
@@ -109,10 +109,17 @@ class Template():
         return 'Generated template:\n{}'.format(json.dumps(self.data, indent=4))
 
     def propertiesMap(self, value: Union[dict, str]) -> dict:
-        """Allows custom values to be passed as part of the template
-        
+        """Maps the provided value to a dictionary representing its properties.
+
         Args:
-            value (dict or str): str or dict with the value to be customized
+            value (Union[dict, str]): The value to map. Can be either a dictionary or a string.
+
+        Returns:
+            dict: A dictionary representing the properties of the provided value.
+
+        Example:
+            >>> propertiesMap('int')
+            {'type': 'integer'}
         """
         if isinstance(value, dict):
             return value
@@ -130,10 +137,13 @@ class Template():
         return {"type": value}
 
     def getTemplateDict(self, template: Union[List[dict], Tuple[dict], Set[dict], dict]) -> dict:
-        """Extract all keys if template is sent as a list of dictionaries
-        
+        """Returns a dictionary containing all keys and values present in the input template.
+
         Args:
-            template (list or dict): get all keys from a dictionary or dictionaries inside a list
+            template: A template dictionary or a list, tuple or set of dictionaries.
+        
+        Returns:
+            A dictionary containing all keys and values present in the input template.
         """
         if isinstance(template, (list, tuple, set)):
             allKeys = {k for d in template for k in d.keys()}
@@ -153,11 +163,15 @@ class Template():
         return templateDict
 
     def generateProperties(self, template, gtime=True):
-        """Generate the properties part of the template
-                
+        """Returns a dictionary containing the properties of the input template.
+
         Args:
-            template (list or dict): template for creating the template JSON
-            gtime (bool): Generate the GenerateTime propertie
+            template: A template dictionary or a list, tuple or set of dictionaries.
+            gtime: A boolean flag that indicates whether or not to generate the "GenerateTime" property.
+                Default is True.
+        
+        Returns:
+            A dictionary containing the properties of the input template.
         """
         newDict = dict()
         textType = {

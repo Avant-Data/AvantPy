@@ -38,7 +38,7 @@ class UpsertBulk:
         threads (int): Number of threads to send each chunk of documents
         url (str): Default to join the url path with api path
 
-    Examples:
+    Example:
         >>> import logging
         >>> logging.basicConfig(level=logging.INFO)
         >>> import avantpy
@@ -84,12 +84,6 @@ class UpsertBulk:
 
         Args:
             chunk (list(dict) or tuple(dict) or set(dict)): A list of dictionaries to be indexed.
-
-        Returns:
-            None
-
-        Raises:
-            None
 
         The function sends a chunk of data to be indexed into the Elasticsearch cluster by making a PUT request
         to the Elasticsearch server. The data is sent as a JSON object in the request body, and the 'cluster' header 
@@ -140,7 +134,7 @@ class UpsertBulk:
         that failed.
         
         Returns:
-        - A string representing the status of the upload operation. The string logs the total number of items in the `data`
+            A string representing the status of the upload operation. The string logs the total number of items in the `data`
         list, the number of items that were created and updated successfully, as well as the number of items that failed.
         """
         if self.data:
@@ -175,10 +169,10 @@ class UpsertBulk:
         address as a string and returns it with the `https://` protocol prefix.
         
         Args:
-        - url: string representing the URL that the function will try to retrieve.
+            url: string representing the URL that the function will try to retrieve.
         
         Returns:
-        - A string representing the URL. If `url` is empty, the URL is formatted as 'https://{host_ip}' where
+            A string representing the URL. If `url` is empty, the URL is formatted as 'https://{host_ip}' where
         `host_ip` is the IP address of the host.
         """
         if not url:
