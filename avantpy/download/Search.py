@@ -3,7 +3,7 @@ import socket
 import requests
 import logging
 import json
-from typing import Optional, Any
+from typing import Optional, Any, List, Dict
 
 
 class Search:
@@ -78,7 +78,7 @@ class Search:
                  maxSize: Optional[int] = 5000,
                  seedTime: Optional[str] = '8m',
                  aggs: Optional[dict] = {},
-                  **kwargs: Any):
+                 **kwargs: Any):
         self.log = logging.getLogger(__name__)
         self.url = self.getUrl(url)
         self.index = index
@@ -108,7 +108,7 @@ class Search:
         return '<{} dictionaries downloaded in data attribute>'.format(len(self.data))
 
     def makeQuery(self):
-        """Return the GET /_search object to search in elasticsearch"""
+        """Returns the GET /_search object for searching in Elasticsearch."""
         searchQuery = {
             'index': self.index,
             'scroll': self.seedTime,
@@ -150,7 +150,7 @@ class Search:
         return searchQuery
 
     def search(self):
-        """Performs the first search request and checks the need for scroll search"""
+        """ Searches for documents in Elasticsearch using the given query."""
         self.log.info('Searching {} in {}'.format(self.index, self.url))
         try:
             self.response = requests.post(self.url+self.apiCustom,
@@ -181,7 +181,14 @@ class Search:
                 self.index, self.url), exc_info=True)
 
     def scrollSearch(self):
-        """Make the scroll search loop"""
+        """Make the scroll search loop.
+
+        Continuously retrieves the next batch of search results from Elasticsearch using the scroll API
+        until all results have been retrieved.
+
+        Raises:
+            Warning: If the search fails.
+        """
         self.log.info(
             '{}/{} downloaded documents'.format(len(self.data), self.total))
         try:
@@ -203,22 +210,40 @@ class Search:
                 self.index, self.url))
             self.log.error(e)
 
-    def formatData(self):
-        """Transforms elasticsearch return data to a list of dictionaries"""
+    def formatData(self) -> List[Dict[str, Any]]:
+        """Transforms elasticsearch return data to a list of dictionaries
+
+        Returns:
+            List of dictionaries containing fields 'id', 'type', 'index' and any fields present in the '_source' field of each hit.
+        """
         newData = []
         if self.aggs:
             newData = self.data
         else:
             for d in self.data:
-                newDict = dict()
-                newDict['id'] = d['_id']
-                newDict['type'] = d['_type']
-                newDict['index'] = d['_index']
-                newDict.update({k: v for k, v in d['_source'].items()})
-                newData.append(newDict)
+                newData.append({
+                    'id': d['_id'],
+                    'type': d['_type'],
+                    'index': d['_index'],
+                    **{k: v for k, v in d['_source'].items()}
+                })
         return newData
-    
-    def getUrl(self, url):
+
+    def getUrl(self, url: str) -> str:
+        """This function returns a URL string.
+        
+        If the `url` argument is not empty, the function simply returns it.
+        
+        If the `url` argument is empty, the function creates a UDP socket and connects to the IP address and port
+        of Google's public DNS server (8.8.8.8 on port 80) to get the IP address of the host. It then formats the IP
+        address as a string and returns it with the `https://` protocol prefix.
+        
+        Args:
+            url: string representing the URL that the function will try to retrieve.
+        
+        Returns:
+            str: The URL to use for API requests.
+        """
         if not url:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(('8.8.8.8', 80))
