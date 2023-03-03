@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'avantpy'
-copyright = '2022, AvantData'
+copyright = '2023, AvantData'
 author = 'AvantData'
 
 version = '0.1'
