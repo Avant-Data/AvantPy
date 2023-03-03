@@ -254,11 +254,14 @@ class Template():
         return formattedTemplate
 
     def upload(self, **kwargs):
-        """Upload the template to AvantData
+        """Upload a new Elasticsearch template or append to an existing one.
 
         Args:
-            regenerate (bool): always create a template if True
-            append (bool): append missing keys to the current template if True
+            regenerate (bool, optional): If True, the existing template will be deleted and a new one with the same name will be created. Defaults to self.regenerate.
+            append (bool, optional): If True, new properties in the template will be added to the existing template. Defaults to self.append.
+
+        Raises:
+            Exception: If the upload fails.
         """
         regenerate = kwargs.get('regenerate', self.regenerate)
         append = kwargs.get('append', self.append)
