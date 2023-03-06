@@ -5,7 +5,6 @@ import logging
 import json
 from typing import Optional, Any, List, Dict
 
-
 class Search:
     """Search
     A class to manage downloads from avantdata
@@ -72,36 +71,45 @@ class Search:
                  sort: Optional[str] = 'GenerateTime',
                  apiCustom: Optional[str] = '/avantapi/avantData/search/customSearch',
                  apiScroll: Optional[str] = '/avantapi/avantData/search/scrollSearch',
+                 api_memory: Optional[str] = '/avantapi/2.0/avantData/avantMem/search',
                  cluster: Optional[str] = 'AvantData',
                  verifySSL: Optional[bool] = False,
                  size: Optional[int] = 5000,
                  maxSize: Optional[int] = 5000,
                  seedTime: Optional[str] = '8m',
+                 memory: Optional[bool] = False,
                  aggs: Optional[dict] = {},
                  **kwargs: Any):
         self.log = logging.getLogger(__name__)
-        self.url = self.getUrl(url)
+        self.url = self.get_url(url)
         self.index = index
         self.must = must
         self.mustNot = mustNot
+        self.memory = memory
         self.filter = filter
         self.sort = sort
         self.apiCustom = apiCustom
         self.apiScroll = apiScroll
+        self.api_memory = api_memory
         self.cluster = cluster
         self.verifySSL = verifySSL
         self.size = size
         self.maxSize = maxSize
         self.seedTime = seedTime
         self.aggs = aggs
+        self.key = kwargs.get('key', self.index)
         self.query = kwargs.get('query', self.makeQuery())
         self.data = []
         self.took = 0
         requests.packages.urllib3.disable_warnings(
             category=InsecureRequestWarning)
-        self.search()
-        self.raw = self.data.copy()
-        self.data = self.formatData()
+        if self.memory:
+            self.memory_search()
+            self.raw = self.data
+        else:
+            self.search()
+            self.raw = self.data.copy()
+            self.data = self.formatData()
         self.log.info('{} downloaded documents'.format(len(self.data)))
 
     def __repr__(self):
@@ -229,7 +237,25 @@ class Search:
                 })
         return newData
 
-    def getUrl(self, url: str) -> str:
+    def memory_search(self) -> List[Any]:
+        payload = {
+            'key': self.key
+        }
+        try:
+            response = requests.post(self.url+self.api_memory, data=json.dumps(payload), verify=self.verifySSL)
+            self.log.debug(response.text)
+            if response.ok:
+                value = eval(response.json())
+                if isinstance(value, list):
+                    self.data.extend(value)
+                elif isinstance(value, str):
+                    self.data.append(value)
+            else:
+                self.log.warning('Response error. Status code: {}'.format(response.status_code))
+        except Exception:
+            self.log.error('Error searching in memory.', exc_info=True)
+
+    def get_url(self, url: str) -> str:
         """This function returns a URL string.
         
         If the `url` argument is not empty, the function simply returns it.
@@ -245,9 +271,15 @@ class Search:
             str: The URL to use for API requests.
         """
         if not url:
+            import socket
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(('8.8.8.8', 80))
             host_ip = s.getsockname()[0]
             s.close()
             return 'https://{}'.format(host_ip)
         return url
+
+
+logging.basicConfig(level=20)
+S = Search('https://avantnightly.avantsec.com.br', index='json_teste', memory=True)
+print(S.data)

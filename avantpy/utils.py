@@ -17,8 +17,6 @@ def generateID(data: Any) -> str:
         data = json.dumps(data)
     return hashlib.md5(data.encode('utf-8')).hexdigest()
 
-#hadiushduiasdhuiasdhiuasdhuiadshuiads
-
 def edit(
     data: Union[List[dict], Tuple[dict], Set[dict]],
     keys: Optional[Union[dict, list, tuple, set, Callable]] = None,
@@ -37,12 +35,12 @@ def edit(
         The edited list
     """
     import re
-    def regexReplace(value, toReplace):
+    def regex_replace(value, toReplace):
         for k, v in toReplace.items():
             value = re.sub(k, v, value)
         return value
 
-    def replaceMap(value, toReplace):
+    def replace_map(value, toReplace):
         if callable(toReplace):
             toReplace = [toReplace]
         if isinstance(toReplace, (tuple, list, set)):
@@ -50,22 +48,22 @@ def edit(
                 if callable(item):
                     value = item(value)
                 elif type(item) is dict and item and isinstance(value, str):
-                    value = regexReplace(value, item)
+                    value = regex_replace(value, item)
         elif type(toReplace) is dict and toReplace and isinstance(value, str):
-            value = regexReplace(value, toReplace)
+            value = regex_replace(value, toReplace)
         return value
     if type(data) is dict:
         tDict = dict()
         for key, value in data.items():
             if keys:
-                key = replaceMap(key, keys)
+                key = replace_map(key, keys)
             if isinstance(value, (tuple, list, set, dict)):
                 tDict[key] = edit(value, keys, values, items)
             else:
                 if values:
-                    value = replaceMap(value, values)
+                    value = replace_map(value, values)
                 if key in items.keys():
-                    value = replaceMap(value, items[key])
+                    value = replace_map(value, items[key])
                 if value is not None:
                     tDict[key] = value
         return tDict
@@ -76,7 +74,7 @@ def edit(
                 tList.append(edit(item, keys, values, items))
             else:
                 if values:
-                    item = replaceMap(item, values)
+                    item = replace_map(item, values)
                 if item is not None:
                     tList.append(item)
         if type(data) is tuple:
@@ -192,7 +190,7 @@ def unflatten(lst: list, chunks: Optional[int] = 1) -> list:
     return unflattened
 
 
-def getData(dic: dict, *args: Optional[Union[str, int, float, bool]]) -> dict:
+def get_data(dic: dict, *args: Optional[Union[str, int, float, bool]]) -> dict:
     """A way to extract only necessary data inside a dictionary
 
     Args:
@@ -202,13 +200,18 @@ def getData(dic: dict, *args: Optional[Union[str, int, float, bool]]) -> dict:
     Returns:
         Another dictionary with passed keys
     """
+    rdic = dict()
     for data in args:
-        if data:
-            dic = dic.get(data)
+        value = dic.get(data)
+        if isinstance(value, dict):
+            rdic.update(**value)
+        else:
+            rdic.update({data: value})
+    if rdic:
+        return rdic
     return dic
 
-
-def strToType(s: str) -> type:
+def str_to_type(s: str) -> type:
     """Deduces the data type of a string
 
     Args:
@@ -224,7 +227,7 @@ def strToType(s: str) -> type:
         return type(s)
 
 
-def dateToEpochMillis(s: str) -> int:
+def date_to_epoch_millis(s: str) -> int:
     """Parses the date and transforms it into epoch millis format
 
     Args:
@@ -235,7 +238,10 @@ def dateToEpochMillis(s: str) -> int:
     """
     if type(s) is str:
         import dateparser
-        return int(dateparser.parse(s).strftime('%s')) * 1000
+        try:
+            return int(dateparser.parse(s).strftime('%s'))*1000
+        except Exception:
+            pass
     return s
 
 

@@ -1,4 +1,4 @@
-from ..utils import *
+from .. import utils
 import requests
 import logging
 from typing import Optional, Union, List, Tuple, Set, Type
@@ -41,8 +41,7 @@ class JSON:
                      "Accept-Language": "en-US",
                      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101 Firefox/60.0",
                      "X-Requested-With": "XMLHttpRequest",
-                 },
-                 **kwargs):
+                 }):
         self.log = logging.getLogger(__name__)
         self.request = request if isinstance(
             request, (list, tuple, set)) else [request]
@@ -63,11 +62,11 @@ class JSON:
                 response = requests.get(url, headers=self.headers)
             self.responseStatus.append(response.status_code)
             responseJson = response.json()
-            data = getData(responseJson, *self.select)
+            data = utils.get_data(responseJson, *self.select)
             if not isinstance(data, (list, tuple, set)):
                 data = [data]
             self.data.extend(data)
-            self.log.info('{} with {}. {} dictionaries added to data attribute'.format(response, humanSize(len(response.content)), len(data)))
+            self.log.info('{} with {}. {} dictionaries added to data attribute'.format(response, utils.human_size(len(response.content)), len(data)))
         except Exception as e:
             self.log.warning('Failed to read {}'.format(url))
             self.log.error(e)
