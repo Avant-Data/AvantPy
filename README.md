@@ -52,6 +52,7 @@ avantpy
 │   └── Search.py
 ├── Transfer.py
 ├── upload
+│   ├── Memory.py
 │   ├── Template.py
 │   └── UpsertBulk.py
 └── utils.py

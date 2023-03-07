@@ -3,7 +3,7 @@ import logging
 import csv
 
 
-class CSV():
+class CSV:
 
     def __init__(self, request, **kwargs):
         self.log = logging.getLogger(__name__)

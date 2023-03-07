@@ -7,7 +7,7 @@ from typing import Optional, Union, List, Tuple, Set, Any
 from urllib3.exceptions import InsecureRequestWarning
 
 
-class Template():
+class Template:
     """Template
 
     A class to manage creation of templates
@@ -104,12 +104,12 @@ class Template():
         self.append = append
         requests.packages.urllib3.disable_warnings(
             category=InsecureRequestWarning)
-        self.data = self.formatTemplate()
+        self.data = self.format_template()
 
     def __repr__(self):
         return 'Generated template:\n{}'.format(json.dumps(self.data, indent=4))
 
-    def propertiesMap(self, value: Union[dict, str]) -> dict:
+    def properties_map(self, value: Union[dict, str]) -> dict:
         """Maps the provided value to a dictionary representing its properties.
 
         Args:
@@ -119,7 +119,7 @@ class Template():
             dict: A dictionary representing the properties of the provided value.
 
         Example:
-            >>> propertiesMap('int')
+            >>> properties_map('int')
             {'type': 'integer'}
         """
         if isinstance(value, dict):
@@ -137,7 +137,7 @@ class Template():
             return valuesMap[value]
         return {"type": value}
 
-    def getTemplateDict(self, template: Union[List[dict], Tuple[dict], Set[dict], dict]) -> dict:
+    def get_template_dict(self, template: Union[List[dict], Tuple[dict], Set[dict], dict]) -> dict:
         """Returns a dictionary containing all keys and values present in the input template.
 
         Args:
@@ -163,7 +163,7 @@ class Template():
             templateDict = template
         return templateDict
 
-    def generateProperties(self, template, gtime=True):
+    def generate_properties(self, template, gtime=True):
         """Returns a dictionary containing the properties of the input template.
 
         Args:
@@ -188,10 +188,10 @@ class Template():
         templateDict = self.getTemplateDict(template)
         for k, v in templateDict.items():
             if k in self.custom.keys():
-                newDict[k] = self.propertiesMap(self.custom[k])
+                newDict[k] = self.properties_map(self.custom[k])
             elif isinstance(v, dict):
                 newDict[k] = {
-                    "properties": self.generateProperties(v, gtime=False)}
+                    "properties": self.generate_properties(v, gtime=False)}
             elif isinstance(v, (list, tuple, set)):
                 if all([isinstance(d, dict) for d in v]):
                     newDict[k] = {"type": "object"}
@@ -206,10 +206,10 @@ class Template():
             }
         return newDict
 
-    def formatTemplate(self):
+    def format_template(self):
         """Generate the complete template"""
         if isinstance(self.template, (list, tuple, set, dict)):
-            properties = self.generateProperties(self.template)
+            properties = self.generate_properties(self.template)
         else:
             raise ValueError('Template needs to be a dict, list, tuple or set')
         formattedTemplate = {
@@ -295,7 +295,7 @@ class Template():
                         changed = True
                         appendTemplate = {newK: newTemplate.get(
                             newK) for newK in appendKeys}
-                        appendProperties = self.generateProperties(
+                        appendProperties = self.generate_properties(
                             appendTemplate, gtime=False)
                         properties.update(appendProperties)
                         rJson[next(iter(rJson))
