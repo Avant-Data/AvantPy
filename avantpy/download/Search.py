@@ -20,7 +20,7 @@ class Search:
         cluster (str, optional): Header parameter for communication with the api
         verifySSL (bool, optional): Bool to verify SSL of requests
         size (int, optional): Number of documents to be searched (max 5000)
-        maxSize (int, optional): Number of documents to start scroll search
+        max_size (int, optional): Number of documents to start scroll search
         seedTime (str, optional): Period to retain the search context for scrolling,
     Attributes:
         data (list(dict)): Downloaded documents as a list of dictionaries
@@ -36,7 +36,7 @@ class Search:
         cluster (str): Header parameter for communication with the api
         verifySSL (bool): Bool to verify SSL of requests
         size (int): Number of documents to be searched (max 5000)
-        maxSize (int): Number of documents to start scroll search
+        max_size (int): Number of documents to start scroll search
         seedTime (str): Period to retain the search context for scrolling,
         took (int): Time elasticsearch took to process the query on its side
     Examples:
@@ -75,7 +75,7 @@ class Search:
                  cluster: Optional[str] = 'AvantData',
                  verifySSL: Optional[bool] = False,
                  size: Optional[int] = 5000,
-                 maxSize: Optional[int] = 5000,
+                 max_size: Optional[int] = 9999999999,
                  seedTime: Optional[str] = '8m',
                  memory: Optional[bool] = False,
                  aggs: Optional[dict] = {},
@@ -94,7 +94,7 @@ class Search:
         self.cluster = cluster
         self.verifySSL = verifySSL
         self.size = size
-        self.maxSize = maxSize
+        self.max_size = max_size
         self.seedTime = seedTime
         self.aggs = aggs
         self.key = kwargs.get('key', self.index)
@@ -172,13 +172,13 @@ class Search:
                 if type(self.response.json().get('took')) is int:
                     self.took += self.response.json().get('took')
                 self.data.extend(self.response.json().get('hits').get('hits'))
-                if self.total > self.maxSize and self.size >= self.maxSize:
+                if min(self.total, self.max_size) > self.size:
                     self.scrollQuery = {
                         'scroll': self.seedTime,
                         'scroll_id': self.scrollID
                     }
                     self.log.info(
-                        'Over {} found. Starting scroll search'.format(self.maxSize))
+                        'Over {} found. Starting scroll search'.format(self.size))
                     self.scrollSearch()
             elif self.aggs and isinstance(self.response.json(), dict):
                 if type(self.response.json().get('took')) is int:
@@ -198,7 +198,7 @@ class Search:
             Warning: If the search fails.
         """
         self.log.info(
-            '{}/{} downloaded documents'.format(len(self.data), self.total))
+            '{}/{} downloaded documents'.format(len(self.data), min(self.total, self.max_size)))
         try:
             self.response = requests.post(self.url+self.apiScroll,
                                           headers={'cluster': self.cluster},
@@ -208,11 +208,8 @@ class Search:
                 if type(self.response.json().get('took')) is int:
                     self.took += self.response.json().get('took')
                 self.data.extend(self.response.json().get('hits').get('hits'))
-                if len(self.response.json().get('hits').get('hits')) >= self.maxSize:
+                if min(self.total, self.max_size) > len(self.data):
                     self.scrollSearch()
-            elif self.response.status_code == 504:
-                self.log.debug(self.response)
-                self.scrollSearch()
         except Exception as e:
             self.log.warning('Failed to scroll search {} in {}'.format(
                 self.index, self.url))
@@ -253,7 +250,7 @@ class Search:
             else:
                 self.log.warning('Response error. Status code: {}'.format(response.status_code))
         except Exception:
-            self.log.error('Error searching in memory.', exc_info=True)
+            self.log.error('Error searching in memory.')
 
     def get_url(self, url: str) -> str:
         """This function returns a URL string.
@@ -278,8 +275,3 @@ class Search:
             s.close()
             return 'https://{}'.format(host_ip)
         return url
-
-
-logging.basicConfig(level=20)
-S = Search('https://avantnightly.avantsec.com.br', index='json_teste', memory=True)
-print(S.data)
