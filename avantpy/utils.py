@@ -83,7 +83,7 @@ def edit(
             return set(tList)
         return tList
 
-def get_url(self, url: str) -> str:
+def get_url(url: str) -> str:
         """This function returns a URL string.
         
         If the `url` argument is not empty, the function simply returns it.
