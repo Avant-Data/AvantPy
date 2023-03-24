@@ -185,7 +185,7 @@ class Template:
                     },
             "analyzer": "WS"
         }
-        templateDict = self.getTemplateDict(template)
+        templateDict = self.get_template_dict(template)
         for k, v in templateDict.items():
             if k in self.custom.keys():
                 newDict[k] = self.properties_map(self.custom[k])
@@ -288,7 +288,7 @@ class Template:
                 appendedKeys = []
                 for k, v in tmps.get('mappings').items():
                     properties = v.get('properties')
-                    newTemplate = self.getTemplateDict(self.template)
+                    newTemplate = self.get_template_dict(self.template)
                     appendKeys = set(newTemplate.keys())-set(properties.keys())
                     appendedKeys.extend(list(appendKeys))
                     if appendKeys:
