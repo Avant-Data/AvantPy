@@ -12,32 +12,32 @@ class Search:
         url (str, optional): AvantData URL
         index (str, optional): Index where the documents are
         must (str, optional): Must query_string from elasticsearch
-        mustNot (str, optional): = Must_not query_string from elasticsearch
+        must_not (str, optional): = Must_not query_string from elasticsearch
         filter (str, optional): Filter range query from elasticsearch
         sort (str, optional): Attribute to sort the search
-        apiCustom (str, optional): Endpoint where the connection with custom search is set
-        apiScroll (str, optional): Endpoint where the connection with scroll search is set
+        api_custom (str, optional): Endpoint where the connection with custom search is set
+        api_scroll (str, optional): Endpoint where the connection with scroll search is set
         cluster (str, optional): Header parameter for communication with the api
-        verifySSL (bool, optional): Bool to verify SSL of requests
+        verify_SSL (bool, optional): Bool to verify SSL of requests
         size (int, optional): Number of documents to be searched (max 5000)
         max_size (int, optional): Number of documents to start scroll search
-        seedTime (str, optional): Period to retain the search context for scrolling,
+        seed_time (str, optional): Period to retain the search context for scrolling,
     Attributes:
         data (list(dict)): Downloaded documents as a list of dictionaries
         url (str): AvantData URL
         index (str): Index where the documents are
         must (str): Must query_string from elasticsearch
-        mustNot (str): = Must_not query_string from elasticsearch
+        must_not (str): = Must_not query_string from elasticsearch
         filter (str): Filter range query from elasticsearch
         sort (str): Attribute to sort the search
         log (logger): Logger with __name__
-        apiCustom (str): Endpoint where the connection with custom search is set
-        apiScroll (str): Endpoint where the connection with scroll search is set
+        api_custom (str): Endpoint where the connection with custom search is set
+        api_scroll (str): Endpoint where the connection with scroll search is set
         cluster (str): Header parameter for communication with the api
-        verifySSL (bool): Bool to verify SSL of requests
+        verify_SSL (bool): Bool to verify SSL of requests
         size (int): Number of documents to be searched (max 5000)
         max_size (int): Number of documents to start scroll search
-        seedTime (str): Period to retain the search context for scrolling,
+        seed_time (str): Period to retain the search context for scrolling,
         took (int): Time elasticsearch took to process the query on its side
     Examples:
         >>> import logging
@@ -66,17 +66,17 @@ class Search:
                  url: Optional[str] = '',
                  index: Optional[str] = '*',
                  must: Optional[str] = 'GenerateTime:*',
-                 mustNot: Optional[str] = 'GenerateTime:0',
+                 must_not: Optional[str] = 'GenerateTime:0',
                  filter: Optional[dict] = {'GenerateTime': {'lte': 'now'}},
                  sort: Optional[str] = 'GenerateTime',
-                 apiCustom: Optional[str] = '/avantapi/avantData/search/customSearch',
-                 apiScroll: Optional[str] = '/avantapi/avantData/search/scrollSearch',
+                 api_custom: Optional[str] = '/avantapi/avantData/search/customSearch',
+                 api_scroll: Optional[str] = '/avantapi/avantData/search/scrollSearch',
                  api_memory: Optional[str] = '/avantapi/2.0/avantData/avantMem/search',
                  cluster: Optional[str] = 'AvantData',
-                 verifySSL: Optional[bool] = False,
+                 verify_SSL: Optional[bool] = False,
                  size: Optional[int] = 5000,
                  max_size: Optional[int] = 9999999999,
-                 seedTime: Optional[str] = '8m',
+                 seed_time: Optional[str] = '8m',
                  memory: Optional[bool] = False,
                  aggs: Optional[dict] = {},
                  **kwargs: Any):
@@ -84,18 +84,18 @@ class Search:
         self.url = self.get_url(url)
         self.index = index
         self.must = must
-        self.mustNot = mustNot
+        self.must_not = must_not
         self.memory = memory
         self.filter = filter
         self.sort = sort
-        self.apiCustom = apiCustom
-        self.apiScroll = apiScroll
+        self.api_custom = api_custom
+        self.api_scroll = api_scroll
         self.api_memory = api_memory
         self.cluster = cluster
-        self.verifySSL = verifySSL
+        self.verify_SSL = verify_SSL
         self.size = size
         self.max_size = max_size
-        self.seedTime = seedTime
+        self.seed_time = seed_time
         self.aggs = aggs
         self.key = kwargs.get('key', self.index)
         self.query = kwargs.get('query', self.makeQuery())
@@ -119,7 +119,7 @@ class Search:
         """Returns the GET /_search object for searching in Elasticsearch."""
         searchQuery = {
             'index': self.index,
-            'scroll': self.seedTime,
+            'scroll': self.seed_time,
             'body': {
                 'size': self.size,
                 'query': {
@@ -134,7 +134,7 @@ class Search:
                         'must_not': [
                             {
                                 'query_string': {
-                                    'query': self.mustNot
+                                    'query': self.must_not
                                 }
                             }
                         ],
@@ -161,10 +161,10 @@ class Search:
         """ Searches for documents in Elasticsearch using the given query."""
         self.log.info('Searching {} in {}'.format(self.index, self.url))
         try:
-            self.response = requests.post(self.url+self.apiCustom,
+            self.response = requests.post(self.url+self.api_custom,
                                           headers={'cluster': self.cluster},
                                           data=json.dumps(self.query),
-                                          verify=self.verifySSL)
+                                          verify=self.verify_SSL)
             if self.response.status_code < 400 and isinstance(self.response.json(), dict) and not self.aggs:
                 self.scrollID = self.response.json().get('_scroll_id')
                 self.total = self.response.json().get('hits').get('total')
@@ -174,7 +174,7 @@ class Search:
                 self.data.extend(self.response.json().get('hits').get('hits'))
                 if min(self.total, self.max_size) > self.size:
                     self.scrollQuery = {
-                        'scroll': self.seedTime,
+                        'scroll': self.seed_time,
                         'scroll_id': self.scrollID
                     }
                     self.log.info(
@@ -200,10 +200,10 @@ class Search:
         self.log.info(
             '{}/{} downloaded documents'.format(len(self.data), min(self.total, self.max_size)))
         try:
-            self.response = requests.post(self.url+self.apiScroll,
+            self.response = requests.post(self.url+self.api_scroll,
                                           headers={'cluster': self.cluster},
                                           data=json.dumps(self.scrollQuery),
-                                          verify=self.verifySSL)
+                                          verify=self.verify_SSL)
             if self.response.status_code < 400:
                 if type(self.response.json().get('took')) is int:
                     self.took += self.response.json().get('took')
@@ -239,7 +239,7 @@ class Search:
             'key': self.key
         }
         try:
-            response = requests.post(self.url+self.api_memory, data=json.dumps(payload), verify=self.verifySSL)
+            response = requests.post(self.url+self.api_memory, data=json.dumps(payload), verify=self.verify_SSL)
             self.log.debug(response.text)
             if response.ok:
                 value = eval(response.json())
