@@ -235,6 +235,11 @@ class Search:
         return newData
 
     def memory_search(self) -> List[Any]:
+        """Searches for the stored data in memory by the given key.
+
+        Returns:
+            List[Any]: The data retrieved from the memory storage. If the value is a list, it is extended to the
+        """
         payload = {
             'key': self.key
         }

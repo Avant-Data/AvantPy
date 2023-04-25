@@ -6,6 +6,35 @@ import logging
 from urllib3.exceptions import InsecureRequestWarning
 
 class Memory:
+    """Memory Storage Uploader
+
+    A class to manage storage of data in memory
+
+    Args:
+        key (str): The unique identifier for the data to be stored
+        value (Any): The data to be stored in memory
+        baseurl (str, optional): Base URL to execute the memory storage request
+        expire (int, optional): Time (in seconds) before the stored data expires (default: 3600)
+        api (str, optional): Endpoint for the memory storage API
+        verify_SSL (bool, optional): Bool to verify SSL of requests
+
+    Attributes:
+        key (str): The unique identifier for the data to be stored
+        value (Any): The data to be stored in memory
+        baseurl (str): Base URL to execute the memory storage request
+        expire (int): Time (in seconds) before the stored data expires
+        api (str): Endpoint for the memory storage API
+        verify_SSL (bool): Bool to verify SSL of requests
+        log (logger): Logger with __name__
+        url (str): Default to join the url path with api path
+
+    Example:
+        >>> import logging
+        >>> logging.basicConfig(level=logging.INFO)
+        >>> memory = Memory(key="example_key", value={"example": "data"})
+        >>> memory.upload()
+        INFO:memory.Memory:Memory store response status for example_key indexing: 200
+    """
 
     def __init__(self,
                  key: str,
