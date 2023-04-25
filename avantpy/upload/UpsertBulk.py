@@ -18,8 +18,8 @@ class UpsertBulk:
         baseurl (str, optional): Baseurl to execute the upsert bulk 
         api (str, optional): Endpoint where the connection with database is set
         cluster (str, optional): Header parameter for communication with the api
-        verifySSL (bool, optional): Bool to verify SSL of requests
-        chunkSize (int, optional): Number of documents to send in each bulk requests
+        verify_SSL (bool, optional): Bool to verify SSL of requests
+        chunk_size (int, optional): Number of documents to send in each bulk requests
         threads (int, optional): Number of threads to send each chunk of documents
         url (str, optional): Default to join the url path with api path
 
@@ -33,8 +33,8 @@ class UpsertBulk:
         baseurl (str): Baseurl to execute the upsert bulk 
         api (str): Endpoint where the connection with database is set
         cluster (str): Header parameter for communication with the api
-        verifySSL (bool): Bool to verify SSL of requests
-        chunkSize (int): Number of documents to send in each bulk requests
+        verify_SSL (bool): Bool to verify SSL of requests
+        chunk_size (int): Number of documents to send in each bulk requests
         threads (int): Number of threads to send each chunk of documents
         url (str): Default to join the url path with api path
 
@@ -58,16 +58,16 @@ class UpsertBulk:
                  baseurl: Optional[str] = '',
                  api: Optional[str] = '/avantapi/avantData/index/bulk/general/upsert',
                  cluster: Optional[str] = 'AvantData',
-                 verifySSL: Optional[bool] = False,
-                 chunkSize: Optional[int] = 1000,
+                 verify_SSL: Optional[bool] = False,
+                 chunk_size: Optional[int] = 1000,
                  threads: Optional[int] = 1,
                  **kwargs: Any):
         self.log = logging.getLogger(__name__)
         self.baseurl = self.getUrl(baseurl)
         self.api = api
         self.cluster = cluster
-        self.verifySSL = verifySSL
-        self.chunkSize = chunkSize
+        self.verify_SSL = verify_SSL
+        self.chunk_size = chunk_size
         self.threads = threads
         self.data = data
         self.url = kwargs.get('url', self.baseurl+self.api)
@@ -94,33 +94,33 @@ class UpsertBulk:
         were any errors during indexing, the function updates the 'errors' dictionary with the count of errors
         encountered, along with the reason for each error.
         """
-        jsonToSend = {'body': json.loads(json.dumps(chunk))}
+        json_to_send = {'body': json.loads(json.dumps(chunk))}
         headers = {'cluster': self.cluster}
-        responseBulk = requests.put(url=self.url,
+        response_bulk = requests.put(url=self.url,
                                     headers=headers,
-                                    data=json.dumps(jsonToSend),
-                                    verify=self.verifySSL)
+                                    data=json.dumps(json_to_send),
+                                    verify=self.verify_SSL)
         try:
-            responseJson = json.loads(responseBulk.text)
-            if responseJson.get('items'):
+            response_json = json.loads(response_bulk.text)
+            if response_json.get('items'):
                 results = Counter(item.get('update').get('result')
-                                  for item in responseJson.get('items'))
+                                  for item in response_json.get('items'))
                 self.updated += results.get('updated', 0)
                 self.created += results.get('created', 0)
-                if responseJson.get('errors'):
+                if response_json.get('errors'):
                     self.errors.update(Counter(item.get('update').get('error').get(
-                        'reason') for item in responseJson.get('items') if item.get('update').get('error')))
+                        'reason') for item in response_json.get('items') if item.get('update').get('error')))
                 self.log.info('Updated: {}, Created: {}. '.format(
                     self.updated, self.created))
         except Exception as e:
-            self.log.warning(responseBulk.text)
+            self.log.warning(response_bulk.text)
             self.log.error(e)
 
     def upload(self):
         """This function uploads data in chunks and returns a status message.
         
         If the `data` attribute of the object is not empty, the function logs the total number of items in the `data`
-        list, and splits the list into chunks (of size `chunkSize`) for concurrent processing using threads (number of
+        list, and splits the list into chunks (of size `chunk_size`) for concurrent processing using threads (number of
         threads is `threads`).
         
         If `threads` is greater than 1, the function uses `concurrent.futures.ThreadPoolExecutor` to execute the
@@ -140,9 +140,9 @@ class UpsertBulk:
         if self.data:
             self.log.info('Total: {}'.format(len(self.data)))
             chunks = [self.data]
-            if len(self.data) > self.chunkSize:
-                chunks = [self.data[x:x+self.chunkSize]
-                          for x in range(0, len(self.data), self.chunkSize)]
+            if len(self.data) > self.chunk_size:
+                chunks = [self.data[x:x+self.chunk_size]
+                          for x in range(0, len(self.data), self.chunk_size)]
             if self.threads > 1:
                 with concurrent.futures.ThreadPoolExecutor(max_workers=self.threads) as executor:
                     executor.map(self.chunkSend, chunks)
