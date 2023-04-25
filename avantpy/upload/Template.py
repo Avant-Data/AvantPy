@@ -18,13 +18,13 @@ class Template:
         baseurl (str, optional): Baseurl to execute the upsert bulk 
         api (str, optional): Endpoint where the connection with database is set
         cluster (str, optional): Header parameter for communication with the api
-        verifySSL (bool, optional): Bool to verify SSL of requests
+        verify_SSL (bool, optional): Bool to verify SSL of requests
         order (int, optional): Order attribute of the template
         shards (int, optional): Shards attribute of the template
         custom (dict, optional): Attributes to not be considered as text
         aliases (str, optional): Aliases attribute of the template
-        mappingName (str, optional): Mappings attribute of the template
-        templateName (str, optional): Template attribute of the template body
+        mapping_name (str, optional): Mappings attribute of the template
+        template_name (str, optional): Template attribute of the template body
         regenerate (bool, optional): Always create template if True
         append (bool, optional): Append missing keys in the template if True
 
@@ -35,13 +35,13 @@ class Template:
         baseurl (str): Baseurl to execute the upsert bulk 
         api (str): Endpoint where the connection with database is set
         cluster (str): Header parameter for communication with the api
-        verifySSL (bool): Bool to verify SSL of requests
+        verify_SSL (bool): Bool to verify SSL of requests
         order (int): Order attribute of the template
         shards (int): Shards attribute of the template
         custom (dict): Attributes to not be considered as text
         aliases (str): Aliases attribute of the template
-        mappingName (str): Mappings attribute of the template
-        templateName (str): Template attribute of the template body
+        mapping_name (str): Mappings attribute of the template
+        template_name (str): Template attribute of the template body
         regenerate (bool): Always create template if True
         append (bool): Append missing keys in the template if True
         data(dict): The generated template
@@ -78,7 +78,7 @@ class Template:
                  api: Optional[str] = '/avantapi/avantData/template',
                  apiCreate: Optional[str] = '/avantapi/avantData/template/create',
                  cluster: Optional[str] = 'AvantData',
-                 verifySSL: Optional[str] = False,
+                 verify_SSL: Optional[str] = False,
                  order: Optional[int] = 1,
                  shards: Optional[int] = 2,
                  custom: Optional[dict] = {},
@@ -92,9 +92,9 @@ class Template:
         self.api = api
         self.apiCreate = apiCreate
         self.cluster = cluster
-        self.verifySSL = verifySSL
-        self.templateName = kwargs.get('templateName', self.name+'*')
-        self.mappingName = kwargs.get('mappingName', self.name)
+        self.verify_SSL = verify_SSL
+        self.template_name = kwargs.get('template_name', self.name+'*')
+        self.mapping_name = kwargs.get('mapping_name', self.name)
         self.aliases = kwargs.get('aliases', re.sub(
             r'[^a-zA-Z0-9_]*', '', self.name.title()))
         self.order = order
@@ -148,20 +148,20 @@ class Template:
         """
         if isinstance(template, (list, tuple, set)):
             allKeys = {k for d in template for k in d.keys()}
-            templateDict = dict()
+            template_dict = dict()
             for key in allKeys:
                 for di in template:
                     if di.get(key):
                         if isinstance(di.get(key), dict):
-                            if not templateDict.get(key):
-                                templateDict[key] = dict()
-                            templateDict[key].update(di.get(key))
+                            if not template_dict.get(key):
+                                template_dict[key] = dict()
+                            template_dict[key].update(di.get(key))
                         else:
-                            templateDict[key] = di.get(key)
+                            template_dict[key] = di.get(key)
                             break
         elif isinstance(template, dict):
-            templateDict = template
-        return templateDict
+            template_dict = template
+        return template_dict
 
     def generate_properties(self, template, gtime=True):
         """Returns a dictionary containing the properties of the input template.
@@ -185,8 +185,8 @@ class Template:
                     },
             "analyzer": "WS"
         }
-        templateDict = self.get_template_dict(template)
-        for k, v in templateDict.items():
+        template_dict = self.get_template_dict(template)
+        for k, v in template_dict.items():
             if k in self.custom.keys():
                 newDict[k] = self.properties_map(self.custom[k])
             elif isinstance(v, dict):
@@ -216,7 +216,7 @@ class Template:
             "name": self.name,
             "order": self.order,
             "body": {
-                "template": self.templateName,
+                "template": self.template_name,
                 "settings": {
                     "index": {
                         "refresh_interval": "5s",
@@ -236,7 +236,7 @@ class Template:
                     }
                 },
                 "mappings": {
-                    self.mappingName: {
+                    self.mapping_name: {
                         "_all": {
                             "norms": False,
                             "enabled": True
@@ -272,14 +272,14 @@ class Template:
             }
             response = requests.get(url=self.baseurl+self.api+'/'+self.name,
                                     headers=headers,
-                                    verify=self.verifySSL
+                                    verify=self.verify_SSL
                                     )
             if response.status_code == 404 or regenerate:
                 self.log.info('Uploading template {}'.format(self.name))
                 responseCreate = requests.post(url=self.baseurl+self.apiCreate,
                                                headers=headers,
                                                data=json.dumps(self.data),
-                                               verify=self.verifySSL)
+                                               verify=self.verify_SSL)
                 self.log.info(responseCreate.text)
             elif append:
                 rJson = response.json()
@@ -310,7 +310,7 @@ class Template:
                     responseCreate = requests.post(url=self.baseurl+self.apiCreate,
                                                    headers=headers,
                                                    data=json.dumps(self.data),
-                                                   verify=self.verifySSL)
+                                                   verify=self.verify_SSL)
                     self.log.info(responseCreate.text)
                 else:
                     self.log.info(
