@@ -76,7 +76,7 @@ class Template:
                  template: Union[List[dict], Tuple[dict], Set[dict], dict],
                  baseurl: Optional[str] = '',
                  api: Optional[str] = '/avantapi/avantData/template',
-                 apiCreate: Optional[str] = '/avantapi/avantData/template/create',
+                 api_create: Optional[str] = '/avantapi/avantData/template/create',
                  cluster: Optional[str] = 'AvantData',
                  verify_SSL: Optional[str] = False,
                  order: Optional[int] = 1,
@@ -90,7 +90,7 @@ class Template:
         self.template = template
         self.baseurl = self.getUrl(baseurl)
         self.api = api
-        self.apiCreate = apiCreate
+        self.api_create = api_create
         self.cluster = cluster
         self.verify_SSL = verify_SSL
         self.template_name = kwargs.get('template_name', self.name+'*')
@@ -276,7 +276,7 @@ class Template:
                                     )
             if response.status_code == 404 or regenerate:
                 self.log.info('Uploading template {}'.format(self.name))
-                responseCreate = requests.post(url=self.baseurl+self.apiCreate,
+                responseCreate = requests.post(url=self.baseurl+self.api_create,
                                                headers=headers,
                                                data=json.dumps(self.data),
                                                verify=self.verify_SSL)
@@ -307,7 +307,7 @@ class Template:
                 }
                 if changed:
                     self.log.info('Appending keys {}'.format(appendedKeys))
-                    responseCreate = requests.post(url=self.baseurl+self.apiCreate,
+                    responseCreate = requests.post(url=self.baseurl+self.api_create,
                                                    headers=headers,
                                                    data=json.dumps(self.data),
                                                    verify=self.verify_SSL)
