@@ -158,7 +158,7 @@ class Search:
         return searchQuery
 
     def search(self):
-        """ Searches for documents in Elasticsearch using the given query."""
+        """Searches for documents in Elasticsearch using the given query."""
         self.log.info('Searching {} in {}'.format(self.index, self.url))
         try:
             self.response = requests.post(self.url+self.api_custom,
@@ -235,6 +235,7 @@ class Search:
         return newData
 
     def memory_search(self) -> List[Any]:
+        """Searches for the stored data in memory by the given key."""
         payload = {
             'key': self.key
         }
