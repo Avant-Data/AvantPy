@@ -254,6 +254,52 @@ class Template:
         }
         return formattedTemplate
 
+    def flatten_dict(self, d):
+        flattened = {}
+        for k, v in d.items():
+            if isinstance(v, dict):
+                if 'type' in v:
+                    flattened[k] = v['type']
+                elif 'properties' in v:
+                    flattened[k] = self.flatten_dict(v['properties'])
+            else:
+                flattened[k] = v
+        return flattened
+
+    
+    def compare_dictionaries(self, dict1, dict2):
+        diff = {}
+        keys_added = set(dict2.keys()) - set(dict1.keys())
+        for key in keys_added:
+            diff[key] = dict2[key]
+        common_keys = set(dict1.keys()) & set(dict2.keys())
+        for key in common_keys:
+            if isinstance(dict1[key], dict) and isinstance(dict2[key], dict):
+                nested_diff = self.compare_dictionaries(dict1[key], dict2[key])
+                if nested_diff:
+                    diff[key] = nested_diff
+            elif dict1[key] != dict2[key]:
+                diff[key] = dict2[key]
+        return diff
+
+    def pop_specific_values(self, dictionary, specific):
+        keys_to_pop = []
+        for key, value in dictionary.items():
+            if value == specific:
+                keys_to_pop.append(key)
+        return keys_to_pop
+    
+    def remove_keys(self, dictionary, keys_to_pop):
+        if not isinstance(dictionary, dict):
+            return dictionary
+        for key in keys_to_pop:
+            if key in dictionary:
+                dictionary.pop(key)
+        for key, value in dictionary.items():
+            if isinstance(value, dict):
+                dictionary[key] = self.remove_keys(value, keys_to_pop)
+        return dictionary
+
     def upload(self, **kwargs):
         """Upload a new Elasticsearch template or append to an existing one.
 
@@ -288,9 +334,13 @@ class Template:
                 appendedKeys = []
                 for k, v in tmps.get('mappings').items():
                     properties = v.get('properties')
+                    flattened_props = self.flatten_dict(properties)
+                    keys_to_pop = self.pop_specific_values(flattened_props, 'object')
                     newTemplate = self.get_template_dict(self.template)
-                    appendKeys = set(newTemplate.keys())-set(properties.keys())
-                    appendedKeys.extend(list(appendKeys))
+                    flattened_props = self.remove_keys(flattened_props, keys_to_pop)
+                    newTemplate = self.remove_keys(newTemplate, keys_to_pop)
+                    appendKeys = self.compare_dictionaries(flattened_props, newTemplate)
+                    appendedKeys.extend(appendKeys)
                     if appendKeys:
                         changed = True
                         appendTemplate = {newK: newTemplate.get(
