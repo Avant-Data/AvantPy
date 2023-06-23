@@ -269,7 +269,6 @@ class Search:
             str: The URL to use for API requests.
         """
         if not url:
-            import socket
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(('8.8.8.8', 80))
             host_ip = s.getsockname()[0]
