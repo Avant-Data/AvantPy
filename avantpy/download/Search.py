@@ -79,6 +79,8 @@ class Search:
                  seed_time: Optional[str] = '8m',
                  memory: Optional[bool] = False,
                  aggs: Optional[dict] = {},
+                 includes: Optional[list] = [],
+                 ignore_unavailable: Optional[bool] = True,
                  **kwargs: Any):
         self.log = logging.getLogger(__name__)
         self.url = self.get_url(url)
@@ -97,6 +99,8 @@ class Search:
         self.max_size = max_size
         self.seed_time = seed_time
         self.aggs = aggs
+        self.includes = includes
+        self.ignore_unavailable = 'true' if ignore_unavailable else 'false'
         self.key = kwargs.get('key', self.index)
         self.query = kwargs.get('query', self.makeQuery())
         self.data = []
@@ -120,8 +124,12 @@ class Search:
         searchQuery = {
             'index': self.index,
             'scroll': self.seed_time,
+            'ignore_unavailable': self.ignore_unavailable,
             'body': {
                 'size': self.size,
+                '_source': {
+                    'includes': self.includes
+                },
                 'query': {
                     'bool': {
                         'must': [
